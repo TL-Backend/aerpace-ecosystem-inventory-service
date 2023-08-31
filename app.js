@@ -12,7 +12,7 @@ const {router} = require('./src/routes/index');
 
 
 app.use(cors({
-    origin: '*'
+    origin: 'trustedwebsite.com' //TODO:After the development is finished, add the origin.
 }));
 
 app.use(express.json());
