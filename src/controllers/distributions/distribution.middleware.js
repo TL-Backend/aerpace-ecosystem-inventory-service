@@ -105,3 +105,35 @@ exports.validateDistributionInput = async (req, res, next) => {
     });
   }
 };
+
+exports.validateListDistributionInput = async (req, res, next) => {
+  let errorsList = [];
+  try {
+    const { region, search, pageLimit, pageNumber } = req.query;
+    if (search && typeof search !== 'string') {
+      errorsList.push(messages.errorMessages.INVAILD_SEARCH_KEY);
+    }
+    if (region && typeof region !== 'string') {
+      errorsList.push(messages.errorMessages.INVALID_REGION_FILTER);
+    }
+    if (!pageLimit || pageLimit < 0) {
+      errorsList.push(messages.errorMessages.PAGE_LIMIT_MESSAGE);
+    }
+    if (!pageNumber || pageNumber < 0) {
+      errorsList.push(messages.errorMessages.PAGE_NUMBER_MESSAGE);
+    }
+    if (errorsList.length) {
+      throw errorsList.join(' ,');
+    }
+    return next();
+  } catch (error) {
+    logger.error(error);
+    return errorResponse({
+      req,
+      res,
+      error,
+      message: error,
+      code: statusCodes.STATUS_CODE_INVALID_FORMAT,
+    });
+  }
+};

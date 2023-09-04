@@ -4,6 +4,7 @@ const {
   aergov_distributions,
 } = require('../../services/aerpace-ecosystem-backend-db/src/databases/postgresql/models');
 const { logger } = require('../../utils/logger');
+const { getListDistributorsQuery } = require('./distribution.query')
 
 exports.addDistributionHelper = async (data) => {
   const transaction = await sequelize.transaction();
@@ -60,6 +61,32 @@ exports.addDistributionHelper = async (data) => {
   } catch (err) {
     logger.error(err);
     transaction.rollback();
+    return {
+      success: false,
+      errorCode: statusCodes.STATUS_CODE_FAILURE,
+      message: 'Error while adding distribution',
+      data: null 
+    }
+  }
+};
+
+exports.listDistributionsHelper = async (params) => {
+  try{
+    const query = getListDistributorsQuery(params);
+    const data = await sequelize.query(query);
+    return {
+      success: true,
+      data: {
+        distributions: data[0],
+        pageLimit: parseInt(params.page_limit) || 10,
+        pageNumber: parseInt(params.page_number) || 1,
+        totalPages: Math.round(
+          parseInt(data[0][0]?.data_count || 0) / pageLimit,
+        ),
+      },
+    };
+  }catch(err){
+    logger.error(err);
     return {
       success: false,
       errorCode: statusCodes.STATUS_CODE_FAILURE,
