@@ -4,8 +4,8 @@ const {
 } = require('../../utils/responseHandler');
 const { statusCodes } = require('../../utils/statusCodes');
 const { logger } = require('../../utils/logger');
-const { addDistributionHelper } = require('./distributions.helper');
-const messages = require('./distributions.constants');
+const { addDistributionHelper } = require('./distribution.helper');
+const messages = require('./distribution.constant');
 
 exports.addDistribution = async (req, res) => {
   try {
