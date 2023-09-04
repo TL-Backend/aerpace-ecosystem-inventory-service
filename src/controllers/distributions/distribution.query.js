@@ -7,7 +7,7 @@ exports.getListDistributorsQuery = (params) => {
     let queryFilterCondition = ``;
 
     if(search) {
-      searchCondition = `dst.name ILIKE '%${search}%' OR  dst.region ILIKE '%${search}%' OR dst.email ILIKE '%${search}%'`;
+      searchCondition = `dst.name ILIKE '%${search}%' OR  dst.region ILIKE '%${search}%' OR dst.email ILIKE '%${search}%'`
       userSearchCondition = `usr.first_name ILIKE '%${search}%' OR last_name ILIKE '%${search}%'`
     }
 
@@ -15,7 +15,7 @@ exports.getListDistributorsQuery = (params) => {
       let filterData = region.split(',');
       filterData.forEach(data => {
         i
-        queryFilterCondition = (queryFilterCondition === '')? region = '${data}': queryFilterCondition + `AND region = '${data}'`
+        queryFilterCondition = (queryFilterCondition === '')? `WHERE region = '${data}'`: queryFilterCondition + `AND region = '${data}'`
       });
     }
 
@@ -28,7 +28,6 @@ exports.getListDistributorsQuery = (params) => {
     usr.last_name as last_name
     FROM ${dbTables.DISTRIBUTIONS_TABLE} as dst
     left JOIN ${dbTables.USERS_TABLE} as usr on usr.id = dst.user_id
-    WHERE alrt.tenant_id = $1 
     ${queryFilterCondition}
     ${userSearchCondition}
     ${searchCondition}
