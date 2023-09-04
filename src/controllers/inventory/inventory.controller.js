@@ -2,28 +2,31 @@ const { logger } = require("../../utils/logger")
 const { errorResponse, successResponse } = require("../../utils/responseHandler")
 const { statusCodes } = require("../../utils/statusCodes")
 const { successResponses } = require("./inventory.constants")
-const { getInventory } = require("./inventory.helper")
+const { getInventory, paginateData } = require("./inventory.helper")
 
 exports.listInventory = async (req, res, next) => {
   try {
-    let { pageLimit, pageNumber, status } = req.query
+    let { page_limit: pageLimit, page_number: pageNumber, device_assign_status: deviceAssignStatus } = req.query
     pageLimit = pageLimit.trim()
     pageNumber = pageNumber.trim()
-    status = status.trim()
-    let { data: inventoryData } = await getInventory(req.query)
-    const startIndex = (pageNumber - 1) * pageLimit
-    const endIndex = parseInt(startIndex) + parseInt(pageLimit)
-    let paginatedData;
-    if (status === "0") {
-      const unassignedData = inventoryData.filter(data => data.distributor_id === "null");
-      paginatedData = unassignedData.slice(startIndex, endIndex)
+    if (deviceAssignStatus) {
+      deviceAssignStatus = deviceAssignStatus.trim()
     }
-    else if (status === "1") {
-      const assignedData = inventoryData.filter(data => data.distributor_id !== "null");
-      paginatedData = assignedData.slice(startIndex, endIndex)
+    let { success, errorCode, message, data: inventoryData } = await getInventory({ params: req.query })
+    if (!success) {
+      return errorResponse({
+        res,
+        code: errorCode,
+        message,
+      });
     }
-    else {
-      paginatedData = inventoryData.slice(startIndex, endIndex)
+    const { success: paginationStatus, errorCode: paginationErrorCode, message: paginationMessage, data: paginatedData } = await paginateData({ pageLimit, pageNumber, deviceAssignStatus, inventoryData })
+    if (!paginationStatus) {
+      return errorResponse({
+        res,
+        code: paginationErrorCode,
+        message: paginationMessage,
+      });
     }
     return successResponse({
       res,
