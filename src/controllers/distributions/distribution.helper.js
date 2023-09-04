@@ -6,7 +6,7 @@ const {
 const { logger } = require('../../utils/logger');
 const {
   getDataById
-} = require('./distribution.queries');
+} = require('./distribution.query');
 const { statusCodes } = require('../../utils/statusCodes');
 
 exports.addDistributionHelper = async (data) => {

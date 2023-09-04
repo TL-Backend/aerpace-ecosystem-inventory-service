@@ -5,7 +5,7 @@ const {
 const { statusCodes } = require('../../utils/statusCodes');
 const { logger } = require('../../utils/logger');
 const { addDistributionHelper, editDistributionHelper } = require('./distribution.helper');
-const messages = require('./distribution.constants');
+const messages = require('./distribution.constant');
 
 exports.addDistribution = async (req, res) => {
   try {
