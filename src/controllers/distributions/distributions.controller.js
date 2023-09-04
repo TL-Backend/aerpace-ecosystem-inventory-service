@@ -18,6 +18,7 @@ exports.addDistribution = async (req, res) => {
         res,
         code: statusCodes.STATUS_CODE_FAILURE,
         error: distribution.data,
+        message: distribution.message
       });
     }
     return successResponse({

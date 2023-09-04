@@ -53,14 +53,18 @@ exports.addDistributionHelper = async (data) => {
     transaction.commit();
     return {
       success: true,
-      data: data
-    };
+      errorCode: '',
+      message: 'Distribution added successfully',
+      data: data 
+    }
   } catch (err) {
     logger.error(err);
     transaction.rollback();
     return {
-      data: err,
       success: false,
-    };
+      errorCode: statusCodes.STATUS_CODE_FAILURE,
+      message: 'Error while adding distribution',
+      data: null 
+    }
   }
 };
