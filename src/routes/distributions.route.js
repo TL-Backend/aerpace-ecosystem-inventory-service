@@ -1,5 +1,5 @@
-const { addDistribution } = require("../controllers/distributions/distributions.controller");
-const { validateDistributionInput } = require("../controllers/distributions/distributions.middleware");
+const { addDistribution } = require("../controllers/distributions/distribution.controller");
+const { validateDistributionInput } = require("../controllers/distributions/distribution.middleware");
 
 
 module.exports = function (app) {
