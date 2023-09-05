@@ -1,18 +1,21 @@
+const { getPaginationQuery } = require("../../services/aerpace-ecosystem-backend-db/src/commons/common.query")
 const { logger } = require("../../utils/logger")
 const { errorResponse, successResponse } = require("../../utils/responseHandler")
-const { statusCodes } = require("../../utils/statusCodes")
-const { successResponses } = require("./inventory.constants")
-const { getInventory, paginateData } = require("./inventory.helper")
+const { statusCodes } = require("../../utils/statusCode")
+const { successResponses } = require("./inventory.constant")
+const { getInventory } = require("./inventory.helper")
 
 exports.listInventory = async (req, res, next) => {
   try {
-    let { page_limit: pageLimit, page_number: pageNumber, device_assign_status: deviceAssignStatus } = req.query
-    pageLimit = pageLimit.trim()
-    pageNumber = pageNumber.trim()
-    if (deviceAssignStatus) {
-      deviceAssignStatus = deviceAssignStatus.trim()
+    let { page_limit: pageLimit, page_number: pageNumber } = req.query
+    if (pageLimit) {
+      pageLimit = pageLimit.trim()
     }
-    let { success, errorCode, message, data: inventoryData } = await getInventory({ params: req.query })
+    if (pageNumber) {
+      pageNumber = pageNumber.trim()
+    }
+    const paginationQuery = getPaginationQuery({ pageLimit, pageNumber })
+    let { success, errorCode, message, data: inventoryData } = await getInventory({ params: req.query, paginationQuery })
     if (!success) {
       return errorResponse({
         res,
@@ -20,17 +23,9 @@ exports.listInventory = async (req, res, next) => {
         message,
       });
     }
-    const { success: paginationStatus, errorCode: paginationErrorCode, message: paginationMessage, data: paginatedData } = await paginateData({ pageLimit, pageNumber, deviceAssignStatus, inventoryData })
-    if (!paginationStatus) {
-      return errorResponse({
-        res,
-        code: paginationErrorCode,
-        message: paginationMessage,
-      });
-    }
     return successResponse({
       res,
-      data: paginatedData,
+      data: inventoryData,
       message: successResponses.DATA_FETCH_SUCCESSFULL.message,
       code: statusCodes.STATUS_CODE_SUCCESS,
     });
