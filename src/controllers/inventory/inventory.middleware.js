@@ -1,5 +1,5 @@
 const { check, validationResult } = require('express-validator');
-const { errorResponses } = require('./inventory.constants');
+const { errorResponses } = require('./inventory.constant');
 const { errorResponse } = require('../../utils/responseHandler');
 const { statusCodes } = require('../../utils/statusCodes');
 const { logger } = require('../../utils/logger');
