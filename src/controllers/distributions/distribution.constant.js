@@ -1,4 +1,3 @@
-
 exports.errorMessages = {
   INVAILD_STRING_OR_MISSING_ERROR: (value) => {
     return `${value} should be present and it must be an string`;

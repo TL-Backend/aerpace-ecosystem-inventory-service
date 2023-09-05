@@ -1,4 +1,4 @@
-const { statusCodes } = require('../../utils/statusCodes');
+const { statusCodes } = require('../../utils/statusCode');
 const { logger } = require('../../utils/logger');
 const { errorResponse } = require('../../utils/responseHandler');
 const messages = require('./distribution.constant');
@@ -11,7 +11,9 @@ const validateInput = (input, validations) => {
     const validation = validations[key];
 
     if (value === undefined || value === null || !validation(value)) {
-      errorsList.push(messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(key));
+      errorsList.push(
+        messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(key),
+      );
     }
   }
 
@@ -20,11 +22,13 @@ const validateInput = (input, validations) => {
 
 const emailValidation = (value) => {
   // Add your email validation logic here
-  const validRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+  const validRegex =
+    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
   return value && value.trim().match(validRegex);
 };
 
-const stringValidation = (value) => typeof value === 'string' && value.trim().length > 0;
+const stringValidation = (value) =>
+  typeof value === 'string' && value.trim().length > 0;
 
 exports.validateDistributionInput = async (req, res, next) => {
   try {
@@ -78,5 +82,3 @@ exports.validateDistributionInput = async (req, res, next) => {
     });
   }
 };
-
-

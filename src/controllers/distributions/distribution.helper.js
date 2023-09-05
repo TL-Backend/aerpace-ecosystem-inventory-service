@@ -29,7 +29,7 @@ exports.addDistributionHelper = async (data) => {
         email: data.distribution_email,
         phone_number: data.distribution_phone_number,
         address: data.distribution_address,
-        country_code: data.distribution_country_code
+        country_code: data.distribution_country_code,
       };
       const distributionData = await aergov_distributions.create(
         DistributionParams,
@@ -55,8 +55,8 @@ exports.addDistributionHelper = async (data) => {
       success: true,
       errorCode: '',
       message: 'Distribution added successfully',
-      data: data 
-    }
+      data: data,
+    };
   } catch (err) {
     logger.error(err);
     transaction.rollback();
@@ -64,7 +64,7 @@ exports.addDistributionHelper = async (data) => {
       success: false,
       errorCode: statusCodes.STATUS_CODE_FAILURE,
       message: 'Error while adding distribution',
-      data: null 
-    }
+      data: null,
+    };
   }
 };
