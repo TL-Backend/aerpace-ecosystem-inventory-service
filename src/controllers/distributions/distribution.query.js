@@ -1,10 +1,14 @@
-const db = require('../../services/aerpace-ecosystem-backend-db/src/databases/postgresql/models');
-const { dbTables } = require('../../utils/constants');
+const { dbTables } = require('../../utils/constant');
+const {
+  getPaginationQuery,
+} = require('../../services/aerpace-ecosystem-backend-db/src/commons/common.query');
+
 
 exports.getListDistributorsQuery = (params) => {
   const { page_number, page_limit, search, region } = params;
-  let searchCondition = ``;
-  let queryFilterCondition = ``;
+  let searchCondition = '';
+  let queryFilterCondition = '';
+  let paginationCondition = ''
 
   if (search) {
     searchCondition = `AND dst.name ILIKE '%${search}%' OR dst.region ILIKE '%${search}%' OR dst.email ILIKE '%${search}%' OR usr.first_name ILIKE '%${search}%' OR usr.last_name ILIKE '%${search}%'`;
@@ -23,10 +27,7 @@ exports.getListDistributorsQuery = (params) => {
           : queryFilterCondition + ` OR region = '${data}'`;
     });
   }
-
-  let paginationCondition = `OFFSET(((${parseInt(page_number || 1)})-1)*${
-    parseInt(page_limit) || 10
-  }) ROWS FETCH NEXT ${parseInt(page_limit) || 10} ROWS ONLY`;
+  paginationCondition = getPaginationQuery({ pageLimit: page_limit, pageNumber: page_number });
   let query = `
     SELECT 
       COUNT(*) OVER() AS data_count,

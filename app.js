@@ -7,7 +7,7 @@ const app = express();
 app.disable('x-powered-by');
 
 const {errorResponse} = require('./src/utils/responseHandler');
-const {statusCodes} = require('./src/utils/statusCodes');
+const {statusCodes} = require('./src/utils/statusCode');
 const {router} = require('./src/routes/index');
 
 
@@ -39,6 +39,6 @@ app.use((error, req, res, next) =>
     }),
 );
 
-app.listen(process.env.PORT || 4000, () => {
+app.listen(process.env.PORT || 3000, () => {
     console.log(`server started running on port ${process.env.PORT || 3000}`);
 });

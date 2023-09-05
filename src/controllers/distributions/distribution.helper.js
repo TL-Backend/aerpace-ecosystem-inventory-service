@@ -4,7 +4,7 @@ const {
   aergov_distributions,
 } = require('../../services/aerpace-ecosystem-backend-db/src/databases/postgresql/models');
 const { logger } = require('../../utils/logger');
-const { statusCodes } = require('../../utils/statusCodes');
+const { statusCodes } = require('../../utils/statusCode');
 const { getListDistributorsQuery, getFiltersQuery } = require('./distribution.query')
 
 exports.addDistributionHelper = async (data) => {

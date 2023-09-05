@@ -1,4 +1,4 @@
-const { statusCodes } = require('../../utils/statusCodes');
+const { statusCodes } = require('../../utils/statusCode');
 const { logger } = require('../../utils/logger');
 const { errorResponse } = require('../../utils/responseHandler');
 const messages = require('./distribution.constant');

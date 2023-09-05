@@ -2,7 +2,7 @@ const {
   errorResponse,
   successResponse,
 } = require('../../utils/responseHandler');
-const { statusCodes } = require('../../utils/statusCodes');
+const { statusCodes } = require('../../utils/statusCode');
 const { logger } = require('../../utils/logger');
 const { addDistributionHelper, listDistributionsHelper } = require('./distribution.helper');
 const messages = require('./distribution.constant');
@@ -56,7 +56,7 @@ exports.listDistributions = async (req, res) => {
       data: distribution.data,
       req,
       res,
-      message: messages.successMessages.DISTRIBUTION_ADDED_MESSAGE,
+      message: messages.successMessages.DISTRIBUTIONS_FETCHED_MESSAGE,
       code: statusCodes.STATUS_CODE_SUCCESS,
     });
   } catch (err) {
