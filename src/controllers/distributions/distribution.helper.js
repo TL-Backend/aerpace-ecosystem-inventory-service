@@ -5,7 +5,10 @@ const {
 } = require('../../services/aerpace-ecosystem-backend-db/src/databases/postgresql/models');
 const { logger } = require('../../utils/logger');
 const { statusCodes } = require('../../utils/statusCode');
-const { getListDistributorsQuery, getFiltersQuery } = require('./distribution.query')
+const {
+  getListDistributorsQuery,
+  getFiltersQuery,
+} = require('./distribution.query');
 
 exports.addDistributionHelper = async (data) => {
   const transaction = await sequelize.transaction();
@@ -31,7 +34,7 @@ exports.addDistributionHelper = async (data) => {
         email: data.distribution_email,
         phone_number: data.distribution_phone_number,
         address: data.distribution_address,
-        country_code: data.distribution_country_code
+        country_code: data.distribution_country_code,
       };
       const distributionData = await aergov_distributions.create(
         DistributionParams,
@@ -57,8 +60,8 @@ exports.addDistributionHelper = async (data) => {
       success: true,
       errorCode: '',
       message: 'Distribution added successfully',
-      data: data 
-    }
+      data: data,
+    };
   } catch (err) {
     logger.error(err);
     transaction.rollback();
@@ -66,45 +69,47 @@ exports.addDistributionHelper = async (data) => {
       success: false,
       errorCode: statusCodes.STATUS_CODE_FAILURE,
       message: 'Error while adding distribution',
-      data: null 
-    }
+      data: null,
+    };
   }
 };
 
 exports.listDistributionsHelper = async (params) => {
-  try{
+  try {
     const query = getListDistributorsQuery(params);
     const data = await sequelize.query(query);
-    let filterData, filterQuery, regions = [];
+    let filterData,
+      filterQuery,
+      regions = [];
 
-    if(params.page_number === '1'){
+    if (params.page_number === '1') {
       filterQuery = getFiltersQuery;
       filterData = await sequelize.query(filterQuery);
-      regions = filterData[0].map(row => row.region);
+      regions = filterData[0].map((row) => row.region);
     }
-    
+
     let totalPages = Math.round(
       parseInt(data[0][0]?.data_count || 0) / params.page_limit,
-    )
+    );
     return {
       success: true,
       data: {
         distributions: data[0],
         pageLimit: parseInt(params.page_limit) || 10,
         pageNumber: parseInt(params.page_number) || 1,
-        totalPages: (totalPages !== 0)? totalPages : 1,
+        totalPages: totalPages !== 0 ? totalPages : 1,
         filters: {
-          regions: regions
-        }
+          regions: regions,
+        },
       },
     };
-  }catch(err){
+  } catch (err) {
     logger.error(err);
     return {
       success: false,
       errorCode: statusCodes.STATUS_CODE_FAILURE,
       message: 'Error while adding distribution',
-      data: null 
-    }
+      data: null,
+    };
   }
 };

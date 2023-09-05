@@ -3,12 +3,11 @@ const {
   getPaginationQuery,
 } = require('../../services/aerpace-ecosystem-backend-db/src/commons/common.query');
 
-
 exports.getListDistributorsQuery = (params) => {
   const { page_number, page_limit, search, region } = params;
   let searchCondition = '';
   let queryFilterCondition = '';
-  let paginationCondition = ''
+  let paginationCondition = '';
 
   if (search) {
     searchCondition = `AND dst.name ILIKE '%${search}%' OR dst.region ILIKE '%${search}%' OR dst.email ILIKE '%${search}%' OR usr.first_name ILIKE '%${search}%' OR usr.last_name ILIKE '%${search}%'`;
@@ -27,7 +26,10 @@ exports.getListDistributorsQuery = (params) => {
           : queryFilterCondition + ` OR region = '${data}'`;
     });
   }
-  paginationCondition = getPaginationQuery({ pageLimit: page_limit, pageNumber: page_number });
+  paginationCondition = getPaginationQuery({
+    pageLimit: page_limit,
+    pageNumber: page_number,
+  });
   let query = `
     SELECT 
       COUNT(*) OVER() AS data_count,
