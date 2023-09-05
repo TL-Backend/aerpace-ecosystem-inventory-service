@@ -58,7 +58,6 @@ exports.addDistributionHelper = async (data) => {
     transaction.commit();
     return {
       success: true,
-      errorCode: '',
       message: 'Distribution added successfully',
       data: data,
     };
