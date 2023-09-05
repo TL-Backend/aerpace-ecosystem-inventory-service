@@ -86,19 +86,28 @@ exports.validateDistributionInput = async (req, res, next) => {
 exports.validateListDistributionInput = async (req, res, next) => {
   try {
     const { region, search, page_limit, page_number } = req.query;
+    const errorsList = [];
 
-    const validations = {
-      page_limit: (value) => !isNaN(parseInt(value)) && parseInt(value) >= 0,
-      page_number: (value) => !isNaN(parseInt(value)) && parseInt(value) >= 0,
-    };
+    if (
+      !page_limit ||
+      parseInt(page_limit) < 0 ||
+      typeof page_limit !== 'string'
+    ) {
+      errorsList.push(messages.errorMessages.PAGE_NUMBER_MESSAGE);
+    }
+    if (
+      !page_number ||
+      parseInt(page_number) < 0 ||
+      typeof page_number !== 'string'
+    ) {
+      errorsList.push(messages.errorMessages.PAGE_LIMIT_MESSAGE);
+    }
     if (search && typeof search !== 'string') {
       errorsList.push(messages.errorMessages.INVAILD_SEARCH_KEY);
     }
     if (region && typeof region !== 'string') {
       errorsList.push(messages.errorMessages.INVALID_REGION_FILTER);
     }
-
-    const errorsList = this.validateInput(req.query, validations);
 
     if (errorsList.length) {
       throw errorsList.join(', ');
