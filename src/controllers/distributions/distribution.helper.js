@@ -4,10 +4,8 @@ const {
   aergov_distributions,
 } = require('../../services/aerpace-ecosystem-backend-db/src/databases/postgresql/models');
 const { logger } = require('../../utils/logger');
-const {
-  getDataById
-} = require('./distribution.query');
-const { statusCodes } = require('../../utils/statusCodes');
+const { getDataById } = require('./distribution.query');
+const { statusCodes } = require('../../utils/statusCode');
 
 exports.addDistributionHelper = async (data) => {
   const transaction = await sequelize.transaction();
@@ -33,7 +31,7 @@ exports.addDistributionHelper = async (data) => {
         email: data.distribution_email,
         phone_number: data.distribution_phone_number,
         address: data.distribution_address,
-        country_code: data.distribution_country_code
+        country_code: data.distribution_country_code,
       };
       const distributionData = await aergov_distributions.create(
         DistributionParams,
@@ -59,8 +57,8 @@ exports.addDistributionHelper = async (data) => {
       success: true,
       errorCode: '',
       message: 'Distribution added successfully',
-      data: data 
-    }
+      data: data,
+    };
   } catch (err) {
     logger.error(err);
     transaction.rollback();
@@ -68,8 +66,8 @@ exports.addDistributionHelper = async (data) => {
       success: false,
       errorCode: statusCodes.STATUS_CODE_FAILURE,
       message: 'Error while adding distribution',
-      data: null 
-    }
+      data: null,
+    };
   }
 };
 
@@ -84,30 +82,28 @@ exports.validateDataInDBById = async (id_key, table) => {
       success: true,
       errorCode: '',
       message: 'Data fetching success',
-      data: data[0] 
-    }
+      data: data[0],
+    };
   } catch (err) {
     logger.error(err);
     return {
       success: true,
       errorCode: statusCodes.STATUS_CODE_DATA_NOT_FOUND,
       message: 'Error while fetching data',
-      data: null
-    }
+      data: null,
+    };
   }
 };
-
 
 exports.editDistributionHelper = async (data, id) => {
   try {
     const DistributionParams = {
       name: data.distribution_name,
-      user_id: userData.id,
       region: data.distribution_region,
       email: data.distribution_email,
       phone_number: data.distribution_phone_number,
       address: data.distribution_address,
-      country_code: data.distribution_country_code
+      country_code: data.distribution_country_code,
     };
     const distributionData = await aergov_distributions.update(
       DistributionParams,
@@ -121,15 +117,15 @@ exports.editDistributionHelper = async (data, id) => {
       success: true,
       errorCode: '',
       message: 'Distribution details succesfully modified',
-      data: data
-    }
+      data: data,
+    };
   } catch (err) {
     logger.error(err);
     return {
       success: false,
       errorCode: '',
       message: 'Error while modifiying distribution details',
-      data: null 
-    }
+      data: null,
+    };
   }
 };
