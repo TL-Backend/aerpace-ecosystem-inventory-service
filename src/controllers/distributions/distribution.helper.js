@@ -55,7 +55,6 @@ exports.addDistributionHelper = async (data) => {
     transaction.commit();
     return {
       success: true,
-      errorCode: '',
       message: 'Distribution added successfully',
       data: data,
     };
@@ -80,7 +79,6 @@ exports.validateDataInDBById = async (id_key, table) => {
     });
     return {
       success: true,
-      errorCode: '',
       message: 'Data fetching success',
       data: data[0],
     };
@@ -88,7 +86,7 @@ exports.validateDataInDBById = async (id_key, table) => {
     logger.error(err);
     return {
       success: true,
-      errorCode: statusCodes.STATUS_CODE_DATA_NOT_FOUND,
+      errorCode: statusCodes.STATUS_CODE_FAILURE,
       message: 'Error while fetching data',
       data: null,
     };
@@ -115,7 +113,6 @@ exports.editDistributionHelper = async (data, id) => {
     data.distribution_id = distributionData.id;
     return {
       success: true,
-      errorCode: '',
       message: 'Distribution details succesfully modified',
       data: data,
     };
@@ -123,7 +120,7 @@ exports.editDistributionHelper = async (data, id) => {
     logger.error(err);
     return {
       success: false,
-      errorCode: '',
+      errorCode: statusCodes.STATUS_CODE_FAILURE,
       message: 'Error while modifiying distribution details',
       data: null,
     };
