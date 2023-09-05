@@ -1,7 +1,7 @@
 const {logger} = require("../../utils/logger");
 const {errorResponse, successResponse} = require("../../utils/responseHandler");
-const {statusCodes} = require("../../utils/statusCodes");
-const messages = require("./inventory.constants");
+const {statusCodes} = require("../../utils/statusCode");
+const messages = require("./inventory.constant");
 const {getInventoryImportHistory} = require("./inventory.helper");
 exports.getImportHistoryList = async (request, response) => {
     try {

@@ -2,7 +2,7 @@
  * Response handler methods to maintain common response format for all APIs.
  */
 
-const {statusCodes} = require('./statusCodes');
+const {statusCodes} = require('./statusCode');
 
 exports.successResponse = ({
                                req,

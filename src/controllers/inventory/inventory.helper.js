@@ -1,7 +1,7 @@
 const {
     sequelize,
 } = require('../../services/aerpace-ecosystem-backend-db/src/databases/postgresql/models');
-const {getInventoryImportHistoryQuery} = require("./inventory.queries");
+const {getInventoryImportHistoryQuery} = require("./inventory.query");
 exports.getInventoryImportHistory = async (request) => {
     try {
         const importHistory = await sequelize.query(getInventoryImportHistoryQuery(parseInt(request.query.pageLimit), parseInt(request.query.pageNumber)));
