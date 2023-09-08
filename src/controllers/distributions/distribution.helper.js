@@ -6,6 +6,7 @@ const {
 const { logger } = require('../../utils/logger');
 const { getDataById } = require('./distribution.query');
 const { statusCodes } = require('../../utils/statusCode');
+const { dbTables } = require('../../utils/constant');
 
 exports.addDistributionHelper = async (data) => {
   const transaction = await sequelize.transaction();
@@ -95,6 +96,18 @@ exports.validateDataInDBById = async (id_key, table) => {
 
 exports.editDistributionHelper = async (data, id) => {
   try {
+    const distribution = await this.validateDataInDBById(
+      id,
+      dbTables.DISTRIBUTIONS_TABLE,
+    );
+    if (!distribution.data || !distribution.success) {
+      return {
+        success: false,
+        errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
+        message: 'Invalid distribution_id',
+        data: null,
+      };
+    }
     const DistributionParams = {
       name: data.distribution_name,
       region: data.distribution_region,

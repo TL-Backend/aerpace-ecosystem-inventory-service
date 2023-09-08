@@ -48,11 +48,10 @@ exports.editDistribution = async (req, res) => {
       req.params.id,
     );
     if (!distribution.success) {
-      logger.error(user.data);
       return errorResponse({
         req,
         res,
-        code: statusCodes.STATUS_CODE_FAILURE,
+        code: distribution.code || statusCodes.STATUS_CODE_FAILURE,
         error: distribution.data,
         message: distribution.message,
       });

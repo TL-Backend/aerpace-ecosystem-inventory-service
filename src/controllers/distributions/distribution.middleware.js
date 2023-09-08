@@ -184,15 +184,6 @@ exports.validateEditDistributionInput = async (req, res, next) => {
         ),
       );
     }
-    if (distribution_id?.startsWith('dr')) {
-      const distribution = await validateDataInDBById(
-        distribution_id,
-        dbTables.DISTRIBUTIONS_TABLE,
-      );
-      if (!distribution.data || !distribution.success) {
-        errorsList.push(messages.errorMessages.NO_DISTRIBUTION_FOUND);
-      }
-    }
     if (
       distribution_region &&
       (!distribution_region?.trim() || typeof distribution_region !== 'string')
