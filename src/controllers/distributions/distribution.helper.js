@@ -97,9 +97,11 @@ exports.listDistributionsHelper = async (params) => {
         page_limit: parseInt(params.page_limit) || 10,
         page_number: parseInt(params.page_number) || 1,
         total_pages: totalPages !== 0 ? totalPages : 1,
-        filters: regions.length? {
-          regions: regions,
-        } : {}
+        filters: regions.length
+          ? {
+              regions: regions,
+            }
+          : {},
       },
     };
   } catch (err) {
