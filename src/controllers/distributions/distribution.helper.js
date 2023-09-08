@@ -94,12 +94,12 @@ exports.listDistributionsHelper = async (params) => {
       success: true,
       data: {
         distributions: data[0],
-        pageLimit: parseInt(params.page_limit) || 10,
-        pageNumber: parseInt(params.page_number) || 1,
-        totalPages: totalPages !== 0 ? totalPages : 1,
-        filters: {
+        page_limit: parseInt(params.page_limit) || 10,
+        page_number: parseInt(params.page_number) || 1,
+        total_pages: totalPages !== 0 ? totalPages : 1,
+        filters: regions.length? {
           regions: regions,
-        },
+        } : {}
       },
     };
   } catch (err) {
