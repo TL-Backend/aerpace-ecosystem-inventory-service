@@ -81,14 +81,14 @@ exports.listDistributionsHelper = async (params) => {
       filterQuery,
       regions = [];
 
-    if (params.page_number === '1') {
+    if (params.page_number === '1' || !params.page_number) {
       filterQuery = getFiltersQuery;
       filterData = await sequelize.query(filterQuery);
       regions = filterData[0].map((row) => row.region);
     }
 
     let totalPages = Math.round(
-      parseInt(data[0][0]?.data_count || 0) / params.page_limit,
+      parseInt(data[0][0]?.data_count || 0) / parseInt(params.page_limit || 10),
     );
     return {
       success: true,

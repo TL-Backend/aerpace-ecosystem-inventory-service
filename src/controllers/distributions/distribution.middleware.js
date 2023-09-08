@@ -165,18 +165,10 @@ exports.validateListDistributionInput = async (req, res, next) => {
     const { region, search, page_limit, page_number } = req.query;
     const errorsList = [];
 
-    if (
-      !page_limit ||
-      parseInt(page_limit) < 0 ||
-      typeof page_limit !== 'string'
-    ) {
+    if (page_limit && parseInt(page_limit) < 0) {
       errorsList.push(messages.errorMessages.PAGE_NUMBER_MESSAGE);
     }
-    if (
-      !page_number ||
-      parseInt(page_number) < 0 ||
-      typeof page_number !== 'string'
-    ) {
+    if (page_number && parseInt(page_number) < 0) {
       errorsList.push(messages.errorMessages.PAGE_LIMIT_MESSAGE);
     }
     if (search && typeof search !== 'string') {
