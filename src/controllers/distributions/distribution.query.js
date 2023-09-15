@@ -46,3 +46,9 @@ exports.getListDistributorsQuery = (params) => {
 };
 
 exports.getFiltersQuery = `SELECT DISTINCT region FROM ${dbTables.DISTRIBUTIONS_TABLE}`;
+exports.getDataById = (table) => {
+  return `SELECT *
+    FROM ${table}
+    WHERE id = :id_key
+    `;
+};
