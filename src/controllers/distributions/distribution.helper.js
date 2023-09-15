@@ -57,7 +57,7 @@ exports.addDistributionHelper = async (data) => {
     return {
       success: true,
       message: 'Distribution added successfully',
-      data: data,
+      data: data
     };
   } catch (err) {
     logger.error(err);
