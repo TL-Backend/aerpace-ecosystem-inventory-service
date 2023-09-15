@@ -2,10 +2,14 @@ exports.errorMessages = {
   INVAILD_STRING_OR_MISSING_ERROR: (value) => {
     return `${value} should be present and it must be an string`;
   },
+  INVAILD_FORMAT_ERROR: (value) => {
+    return `${value} contains invalid data`;
+  },
   INVAILD_EMAIL_FORMAT_MESSAGE: 'Invalid email format',
   INVAILD_SEARCH_KEY: 'Invalid search key, it should be string!',
   PAGE_LIMIT_MESSAGE: 'Page limit should be positive',
   PAGE_NUMBER_MESSAGE: 'Page number should be positive',
+  NO_DISTRIBUTION_FOUND: 'No distribution found with this id',
 };
 
 exports.successMessages = {

@@ -2,6 +2,8 @@ const { statusCodes } = require('../../utils/statusCode');
 const { logger } = require('../../utils/logger');
 const { errorResponse } = require('../../utils/responseHandler');
 const messages = require('./distribution.constant');
+const { dbTables } = require('../../utils/constant');
+const { validateDataInDBById } = require('./distribution.helper');
 
 exports.validateDistributionInput = async (req, res, next) => {
   try {
@@ -23,8 +25,8 @@ exports.validateDistributionInput = async (req, res, next) => {
     } = req.body;
     const errorsList = [];
     if (
-      !distributor_first_name?.trim() ||
-      typeof distributor_first_name !== 'string'
+      typeof distributor_first_name !== 'string' ||
+      !distributor_first_name?.trim()
     ) {
       errorsList.push(
         messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
@@ -33,8 +35,8 @@ exports.validateDistributionInput = async (req, res, next) => {
       );
     }
     if (
-      !distribution_region?.trim() ||
-      typeof distribution_region !== 'string'
+      typeof distribution_region !== 'string' ||
+      !distribution_region?.trim()
     ) {
       errorsList.push(
         messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
@@ -42,7 +44,7 @@ exports.validateDistributionInput = async (req, res, next) => {
         ),
       );
     }
-    if (!distribution_name?.trim() || typeof distribution_name !== 'string') {
+    if (typeof distribution_name !== 'string' || !distribution_name?.trim()) {
       errorsList.push(
         messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
           'distribution_name',
@@ -50,8 +52,8 @@ exports.validateDistributionInput = async (req, res, next) => {
       );
     }
     if (
-      !distributor_last_name?.trim() ||
-      typeof distributor_last_name !== 'string'
+      typeof distributor_last_name !== 'string' ||
+      !distributor_last_name?.trim()
     ) {
       errorsList.push(
         messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
@@ -60,8 +62,8 @@ exports.validateDistributionInput = async (req, res, next) => {
       );
     }
     if (
-      !distributor_country_code?.trim() ||
-      typeof distributor_country_code !== 'string'
+      typeof distributor_country_code !== 'string' ||
+      !distributor_country_code?.trim()
     ) {
       errorsList.push(
         messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
@@ -69,7 +71,7 @@ exports.validateDistributionInput = async (req, res, next) => {
         ),
       );
     }
-    if (!distributor_state?.trim() || typeof distributor_state !== 'string') {
+    if (typeof distributor_state !== 'string' || !distributor_state?.trim()) {
       errorsList.push(
         messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
           'distributor_state',
@@ -77,8 +79,8 @@ exports.validateDistributionInput = async (req, res, next) => {
       );
     }
     if (
-      !distributor_phone_number?.trim() ||
-      typeof distributor_phone_number !== 'string'
+      typeof distributor_phone_number !== 'string' ||
+      !distributor_phone_number?.trim()
     ) {
       errorsList.push(
         messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
@@ -87,8 +89,8 @@ exports.validateDistributionInput = async (req, res, next) => {
       );
     }
     if (
-      !distribution_phone_number?.trim() ||
-      typeof distribution_phone_number !== 'string'
+      typeof distribution_phone_number !== 'string' ||
+      !distribution_phone_number?.trim()
     ) {
       errorsList.push(
         messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
@@ -105,8 +107,8 @@ exports.validateDistributionInput = async (req, res, next) => {
       errorsList.push(messages.errorMessages.INVAILD_EMAIL_FORMAT_MESSAGE);
     }
     if (
-      !distributor_pin_code?.trim() ||
-      typeof distributor_pin_code !== 'string'
+      typeof distributor_pin_code !== 'string' ||
+      !distributor_pin_code?.trim()
     ) {
       errorsList.push(
         messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
@@ -115,8 +117,8 @@ exports.validateDistributionInput = async (req, res, next) => {
       );
     }
     if (
-      !distribution_country_code?.trim() ||
-      typeof distribution_country_code !== 'string'
+      typeof distribution_country_code !== 'string' ||
+      !distribution_country_code?.trim()
     ) {
       errorsList.push(
         messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
@@ -125,8 +127,8 @@ exports.validateDistributionInput = async (req, res, next) => {
       );
     }
     if (
-      !distributor_address?.trim() ||
-      typeof distributor_address !== 'string'
+      typeof distributor_address !== 'string' ||
+      !distributor_address?.trim()
     ) {
       errorsList.push(
         messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
@@ -135,13 +137,95 @@ exports.validateDistributionInput = async (req, res, next) => {
       );
     }
     if (
-      !distribution_address?.trim() ||
-      typeof distribution_address !== 'string'
+      typeof distribution_address !== 'string' ||
+      !distribution_address?.trim()
     ) {
       errorsList.push(
         messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
           'distribution_address',
         ),
+      );
+    }
+    if (errorsList.length) {
+      throw errorsList.join(' ,');
+    }
+    return next();
+  } catch (error) {
+    logger.error(error);
+    return errorResponse({
+      req,
+      res,
+      error,
+      message: error,
+      code: statusCodes.STATUS_CODE_INVALID_FORMAT,
+    });
+  }
+};
+
+exports.validateEditDistributionInput = async (req, res, next) => {
+  try {
+    const {
+      distribution_name,
+      distribution_region,
+      distribution_phone_number,
+      distribution_address,
+      distribution_country_code,
+    } = req.body;
+    const distribution_id = req.params.id;
+    const errorsList = [];
+    if (
+      typeof distribution_id !== 'string' ||
+      !distribution_id?.trim() ||
+      !distribution_id?.startsWith('dr')
+    ) {
+      errorsList.push(
+        messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
+          'distribution_id',
+        ),
+      );
+    }
+    if (
+      distribution_region &&
+      (typeof distribution_region !== 'string' || !distribution_region?.trim())
+    ) {
+      errorsList.push(
+        messages.errorMessages.INVAILD_FORMAT_ERROR('distribution_region'),
+      );
+    }
+    if (
+      distribution_name &&
+      (typeof distribution_name !== 'string' || !distribution_name?.trim())
+    ) {
+      errorsList.push(
+        messages.errorMessages.INVAILD_FORMAT_ERROR('distribution_name'),
+      );
+    }
+    if (
+      distribution_phone_number &&
+      (typeof distribution_phone_number !== 'string' || !distribution_phone_number?.trim())
+    ) {
+      errorsList.push(
+        messages.errorMessages.INVAILD_FORMAT_ERROR(
+          'distribution_phone_number',
+        ),
+      );
+    }
+    if (
+      distribution_country_code &&
+      (typeof distribution_country_code !== 'string' || !distribution_country_code?.trim())
+    ) {
+      errorsList.push(
+        messages.errorMessages.INVAILD_FORMAT_ERROR(
+          'distribution_country_code',
+        ),
+      );
+    }
+    if (
+      distribution_address &&
+      (typeof distribution_address !== 'string' || !distribution_address?.trim())
+    ) {
+      errorsList.push(
+        messages.errorMessages.INVAILD_FORMAT_ERROR('distribution_address'),
       );
     }
     if (errorsList.length) {
