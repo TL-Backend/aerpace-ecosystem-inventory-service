@@ -17,7 +17,7 @@ exports.addDistributionHelper = async (data) => {
     const body = {
       first_name: data.distributor_first_name,
       last_name: data.distributor_last_name,
-      role_id: data.distributor_role_id || "r_1",
+      role_id: data.distributor_role_id || 'r_1',
       email: data.distributor_email,
       phone_number: data.distributor_phone_number,
       country_code: data.distributor_country_code,
@@ -26,7 +26,10 @@ exports.addDistributionHelper = async (data) => {
       state: data.distributor_state,
       user_type: 'USER',
     };
-    const result = await this.postAsyncUserCreation({ api: 'api/v1/users', body: body });
+    const result = await this.postAsyncUserCreation({
+      api: 'api/v1/users',
+      body: body,
+    });
     if (result.code === 200) {
       const DistributionParams = {
         name: data.distribution_name,
@@ -54,8 +57,7 @@ exports.addDistributionHelper = async (data) => {
         );
         data.distribution_id = distributionData.id;
       }
-    }
-    else{
+    } else {
       return {
         success: false,
         errorCode: result?.code,
@@ -68,7 +70,7 @@ exports.addDistributionHelper = async (data) => {
     return {
       success: true,
       message: 'Distribution added successfully',
-      data: data
+      data: data,
     };
   } catch (err) {
     logger.error(err.error.code);

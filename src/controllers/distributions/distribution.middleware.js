@@ -202,7 +202,8 @@ exports.validateEditDistributionInput = async (req, res, next) => {
     }
     if (
       distribution_phone_number &&
-      (typeof distribution_phone_number !== 'string' || !distribution_phone_number?.trim())
+      (typeof distribution_phone_number !== 'string' ||
+        !distribution_phone_number?.trim())
     ) {
       errorsList.push(
         messages.errorMessages.INVAILD_FORMAT_ERROR(
@@ -212,7 +213,8 @@ exports.validateEditDistributionInput = async (req, res, next) => {
     }
     if (
       distribution_country_code &&
-      (typeof distribution_country_code !== 'string' || !distribution_country_code?.trim())
+      (typeof distribution_country_code !== 'string' ||
+        !distribution_country_code?.trim())
     ) {
       errorsList.push(
         messages.errorMessages.INVAILD_FORMAT_ERROR(
@@ -222,7 +224,8 @@ exports.validateEditDistributionInput = async (req, res, next) => {
     }
     if (
       distribution_address &&
-      (typeof distribution_address !== 'string' || !distribution_address?.trim())
+      (typeof distribution_address !== 'string' ||
+        !distribution_address?.trim())
     ) {
       errorsList.push(
         messages.errorMessages.INVAILD_FORMAT_ERROR('distribution_address'),
