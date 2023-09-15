@@ -1,0 +1,13 @@
+{
+    "PORT": 3002,
+    "database": {
+        "userName": "vikas",
+        "password": "vikas123",
+        "port": 5432,
+        "host": "localhost",
+        "databaseName": "aergov_aerpace"
+    },
+    "url": {
+        "user_service": "http://localhost:3000/"
+    }
+}

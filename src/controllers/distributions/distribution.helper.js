@@ -7,14 +7,17 @@ const { logger } = require('../../utils/logger');
 const { getDataById } = require('./distribution.query');
 const { statusCodes } = require('../../utils/statusCode');
 const { dbTables } = require('../../utils/constant');
+const { postAsync } = require('../../utils/request');
+const { url } = require('../../../config').getConfig();
+const USER_SERVICE_API = url.user_service;
 
 exports.addDistributionHelper = async (data) => {
   const transaction = await sequelize.transaction();
   try {
-    const params = {
+    const body = {
       first_name: data.distributor_first_name,
       last_name: data.distributor_last_name,
-      role_id: data.distributor_role_id,
+      role_id: data.distributor_role_id || "r_1",
       email: data.distributor_email,
       phone_number: data.distributor_phone_number,
       country_code: data.distributor_country_code,
@@ -23,11 +26,11 @@ exports.addDistributionHelper = async (data) => {
       state: data.distributor_state,
       user_type: 'USER',
     };
-    const userData = await aergov_users.create(params, { transaction });
-    if (userData) {
+    const result = await this.postAsyncUserCreation({ api: 'api/v1/users', body: body });
+    if (result.code === 200) {
       const DistributionParams = {
         name: data.distribution_name,
-        user_id: userData.id,
+        user_id: result.data?.id,
         region: data.distribution_region,
         email: data.distribution_email,
         phone_number: data.distribution_phone_number,
@@ -44,13 +47,21 @@ exports.addDistributionHelper = async (data) => {
             distribution_id: distributionData.id,
           },
           {
-            where: { id: userData.id },
+            where: { id: result.data?.id },
             returning: true,
           },
           { transaction },
         );
         data.distribution_id = distributionData.id;
       }
+    }
+    else{
+      return {
+        success: false,
+        errorCode: result?.code,
+        message: result?.message,
+        data: null,
+      };
     }
     data.distributor_id = userData.id;
     transaction.commit();
@@ -60,15 +71,36 @@ exports.addDistributionHelper = async (data) => {
       data: data
     };
   } catch (err) {
-    logger.error(err);
+    logger.error(err.error.code);
     transaction.rollback();
     return {
       success: false,
-      errorCode: statusCodes.STATUS_CODE_FAILURE,
-      message: 'Error while adding distribution',
+      errorCode: err.error.code || statusCodes.STATUS_CODE_FAILURE,
+      message: err.error.message || 'Error while adding distribution',
       data: null,
     };
   }
+};
+
+exports.postAsyncUserCreation = async ({
+  body,
+  api,
+  query,
+  headers,
+  prefix,
+  expiryTimeInSeconds = 86400,
+  json = true,
+}) => {
+  const data = await postAsync({
+    uri: `${USER_SERVICE_API}${api}`,
+    body,
+    json,
+    headers,
+    query,
+    prefix,
+    expiryTimeInSeconds,
+  });
+  return data;
 };
 
 exports.validateDataInDBById = async (id_key, table) => {
