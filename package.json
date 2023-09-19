@@ -3,6 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky install",
+    "lint": "eslint",
+    "format": "prettier --write .",
+    "local": "node app.js"
+  },
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
@@ -11,6 +18,7 @@
     "pg": "^8.11.1",
     "pg-hstore": "^2.3.4",
     "prettier": "^3.0.3",
+    "request-promise": "^4.2.6",
     "sequelize": "^6.32.1",
     "sequelize-cli": "^6.6.1"
   },
@@ -19,9 +27,6 @@
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.28.0",
     "husky": "^8.0.0"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
