@@ -2,8 +2,6 @@ const { statusCodes } = require('../../utils/statusCode');
 const { logger } = require('../../utils/logger');
 const { errorResponse } = require('../../utils/responseHandler');
 const messages = require('./distribution.constant');
-const { dbTables } = require('../../utils/constant');
-const { validateDataInDBById } = require('./distribution.helper');
 
 exports.validateDistributionInput = async (req, res, next) => {
   try {
