@@ -15,7 +15,7 @@ exports.addDistribution = async (req, res) => {
     const distributionDetails = req.body;
     const distribution = await addDistributionHelper(distributionDetails);
     if (!distribution.success) {
-      logger.error(distribution.data);
+      logger.error(distribution.message);
       return errorResponse({
         req,
         res,
@@ -35,6 +35,7 @@ exports.addDistribution = async (req, res) => {
     return errorResponse({
       req,
       res,
+      message: err.message,
       code: statusCodes.STATUS_CODE_FAILURE,
     });
   }

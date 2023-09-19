@@ -150,7 +150,7 @@ exports.editDistributionHelper = async (data, id) => {
       return {
         success: false,
         errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
-        message: 'Invalid distribution_id',
+        message: errorResponses.INVALID_DISTRIBUTION_ID,
         data: null,
       };
     }
@@ -172,7 +172,7 @@ exports.editDistributionHelper = async (data, id) => {
     data.distribution_id = distributionData.id;
     return {
       success: true,
-      message: 'Distribution details succesfully modified',
+      message: successResponses.DISTRIBUTION_UPDATED_MESSAGE,
       data: data,
     };
   } catch (err) {
@@ -180,7 +180,7 @@ exports.editDistributionHelper = async (data, id) => {
     return {
       success: false,
       errorCode: statusCodes.STATUS_CODE_FAILURE,
-      message: 'Error while modifiying distribution details',
+      message: errorResponses.ERROR_FOUND,
       data: null,
     };
   }
