@@ -10,7 +10,7 @@ exports.getImportHistoryQuery = ({ pageLimit = 10, pageNumber = 1 }) => {
       (
         SELECT COALESCE(json_agg(import_histories), '[]' :: json)
         FROM (
-          SELECT *
+          SELECT id, file_name, response_file, uploaded_by, uploaded_at, status 
           FROM ${dbTables.IMPORT_HISTORY_TABLE}
           ORDER BY uploaded_at DESC
           ${getPaginationQuery({ pageLimit, pageNumber })}
