@@ -19,6 +19,7 @@ const {
   errorResponses,
   routes,
 } = require('./distribution.constant');
+const { QueryTypes } = require('sequelize');
 const { url } = require('../../../config').getConfig();
 const USER_SERVICE_API = url.user_service;
 
@@ -81,7 +82,7 @@ exports.addDistributionHelper = async (data) => {
         data: null,
       };
     }
-    data.distributor_id = userData.id;
+    data.distributor_id = result.data?.id;
     transaction.commit();
     return {
       success: true,
@@ -90,11 +91,12 @@ exports.addDistributionHelper = async (data) => {
     };
   } catch (err) {
     logger.error(err.message);
+    logger.error(err);
     transaction.rollback();
     return {
       success: false,
-      errorCode: err.error.code || statusCodes.STATUS_CODE_FAILURE,
-      message: err.error.message || errorResponses.ERROR_FOUND,
+      errorCode: err.error?.code || statusCodes.STATUS_CODE_FAILURE,
+      message: err.error?.message || errorResponses.ERROR_FOUND,
       data: null,
     };
   }
@@ -193,7 +195,7 @@ exports.editDistributionHelper = async (data, id) => {
 exports.listDistributionsHelper = async (params) => {
   try {
     const query = getListDistributorsQuery(params);
-    const data = await sequelize.query(query);
+    const data = await sequelize.query(query, { raw: true });
     let filterData,
       filterQuery,
       regions = [];
@@ -220,7 +222,6 @@ exports.listDistributionsHelper = async (params) => {
           : {},
       },
       message: successResponses.DISTRIBUTION_UPDATED_MESSAGE,
-      data: data,
     };
   } catch (err) {
     logger.error(err);

@@ -1,15 +1,13 @@
 const {
   addDistribution,
   listDistributions,
-} = require('../controllers/distributions/distribution.controller');
-const {
-  validateDistributionInput,
-  validateListDistributionInput,
   editDistribution,
 } = require('../controllers/distributions/distribution.controller');
+
 const {
   validateDistributionInput,
   validateEditDistributionInput,
+  validateListDistributionInput,
 } = require('../controllers/distributions/distribution.middleware');
 
 module.exports = function (app) {

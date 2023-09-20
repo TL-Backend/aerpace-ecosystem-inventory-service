@@ -27,7 +27,7 @@ exports.validateDistributionInput = async (req, res, next) => {
       !distributor_first_name?.trim()
     ) {
       errorsList.push(
-        messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
+        messages.errorResponses.INVAILD_STRING_OR_MISSING_ERROR(
           'distributor_first_name',
         ),
       );
@@ -37,14 +37,14 @@ exports.validateDistributionInput = async (req, res, next) => {
       !distribution_region?.trim()
     ) {
       errorsList.push(
-        messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
+        messages.errorResponses.INVAILD_STRING_OR_MISSING_ERROR(
           'distribution_region',
         ),
       );
     }
     if (typeof distribution_name !== 'string' || !distribution_name?.trim()) {
       errorsList.push(
-        messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
+        messages.errorResponses.INVAILD_STRING_OR_MISSING_ERROR(
           'distribution_name',
         ),
       );
@@ -54,7 +54,7 @@ exports.validateDistributionInput = async (req, res, next) => {
       !distributor_last_name?.trim()
     ) {
       errorsList.push(
-        messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
+        messages.errorResponses.INVAILD_STRING_OR_MISSING_ERROR(
           'distributor_last_name',
         ),
       );
@@ -64,14 +64,14 @@ exports.validateDistributionInput = async (req, res, next) => {
       !distributor_country_code?.trim()
     ) {
       errorsList.push(
-        messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
+        messages.errorResponses.INVAILD_STRING_OR_MISSING_ERROR(
           'distributor_country_code',
         ),
       );
     }
     if (typeof distributor_state !== 'string' || !distributor_state?.trim()) {
       errorsList.push(
-        messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
+        messages.errorResponses.INVAILD_STRING_OR_MISSING_ERROR(
           'distributor_state',
         ),
       );
@@ -81,7 +81,7 @@ exports.validateDistributionInput = async (req, res, next) => {
       !distributor_phone_number?.trim()
     ) {
       errorsList.push(
-        messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
+        messages.errorResponses.INVAILD_STRING_OR_MISSING_ERROR(
           'distributor_phone_number',
         ),
       );
@@ -91,7 +91,7 @@ exports.validateDistributionInput = async (req, res, next) => {
       !distribution_phone_number?.trim()
     ) {
       errorsList.push(
-        messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
+        messages.errorResponses.INVAILD_STRING_OR_MISSING_ERROR(
           'distribution_phone_number',
         ),
       );
@@ -99,17 +99,17 @@ exports.validateDistributionInput = async (req, res, next) => {
     let validRegex =
       /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
     if (!distributor_email?.trim() || !distributor_email.match(validRegex)) {
-      errorsList.push(messages.errorMessages.INVAILD_EMAIL_FORMAT_MESSAGE);
+      errorsList.push(messages.errorResponses.INVAILD_EMAIL_FORMAT_MESSAGE);
     }
     if (!distribution_email?.trim() || !distribution_email.match(validRegex)) {
-      errorsList.push(messages.errorMessages.INVAILD_EMAIL_FORMAT_MESSAGE);
+      errorsList.push(messages.errorResponses.INVAILD_EMAIL_FORMAT_MESSAGE);
     }
     if (
       typeof distributor_pin_code !== 'string' ||
       !distributor_pin_code?.trim()
     ) {
       errorsList.push(
-        messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
+        messages.errorResponses.INVAILD_STRING_OR_MISSING_ERROR(
           'distributor_pin_code',
         ),
       );
@@ -119,7 +119,7 @@ exports.validateDistributionInput = async (req, res, next) => {
       !distribution_country_code?.trim()
     ) {
       errorsList.push(
-        messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
+        messages.errorResponses.INVAILD_STRING_OR_MISSING_ERROR(
           'distribution_country_code',
         ),
       );
@@ -129,7 +129,7 @@ exports.validateDistributionInput = async (req, res, next) => {
       !distributor_address?.trim()
     ) {
       errorsList.push(
-        messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
+        messages.errorResponses.INVAILD_STRING_OR_MISSING_ERROR(
           'distributor_address',
         ),
       );
@@ -139,7 +139,7 @@ exports.validateDistributionInput = async (req, res, next) => {
       !distribution_address?.trim()
     ) {
       errorsList.push(
-        messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
+        messages.errorResponses.INVAILD_STRING_OR_MISSING_ERROR(
           'distribution_address',
         ),
       );
@@ -166,16 +166,16 @@ exports.validateListDistributionInput = async (req, res, next) => {
     const errorsList = [];
 
     if (page_limit && parseInt(page_limit) < 0) {
-      errorsList.push(messages.errorMessages.PAGE_NUMBER_MESSAGE);
+      errorsList.push(messages.errorResponses.PAGE_NUMBER_MESSAGE);
     }
     if (page_number && parseInt(page_number) < 0) {
-      errorsList.push(messages.errorMessages.PAGE_LIMIT_MESSAGE);
+      errorsList.push(messages.errorResponses.PAGE_LIMIT_MESSAGE);
     }
     if (search && typeof search !== 'string') {
-      errorsList.push(messages.errorMessages.INVAILD_SEARCH_KEY);
+      errorsList.push(messages.errorResponses.INVAILD_SEARCH_KEY);
     }
     if (region && typeof region !== 'string') {
-      errorsList.push(messages.errorMessages.INVALID_REGION_FILTER);
+      errorsList.push(messages.errorResponses.INVALID_REGION_FILTER);
     }
 
     if (errorsList.length) {
@@ -211,7 +211,7 @@ exports.validateEditDistributionInput = async (req, res, next) => {
       !distribution_id?.startsWith('dr')
     ) {
       errorsList.push(
-        messages.errorMessages.INVAILD_STRING_OR_MISSING_ERROR(
+        messages.errorResponses.INVAILD_STRING_OR_MISSING_ERROR(
           'distribution_id',
         ),
       );
@@ -221,7 +221,7 @@ exports.validateEditDistributionInput = async (req, res, next) => {
       (typeof distribution_region !== 'string' || !distribution_region?.trim())
     ) {
       errorsList.push(
-        messages.errorMessages.INVAILD_FORMAT_ERROR('distribution_region'),
+        messages.errorResponses.INVAILD_FORMAT_ERROR('distribution_region'),
       );
     }
     if (
@@ -229,7 +229,7 @@ exports.validateEditDistributionInput = async (req, res, next) => {
       (typeof distribution_name !== 'string' || !distribution_name?.trim())
     ) {
       errorsList.push(
-        messages.errorMessages.INVAILD_FORMAT_ERROR('distribution_name'),
+        messages.errorResponses.INVAILD_FORMAT_ERROR('distribution_name'),
       );
     }
     if (
@@ -238,7 +238,7 @@ exports.validateEditDistributionInput = async (req, res, next) => {
         !distribution_phone_number?.trim())
     ) {
       errorsList.push(
-        messages.errorMessages.INVAILD_FORMAT_ERROR(
+        messages.errorResponses.INVAILD_FORMAT_ERROR(
           'distribution_phone_number',
         ),
       );
@@ -249,7 +249,7 @@ exports.validateEditDistributionInput = async (req, res, next) => {
         !distribution_country_code?.trim())
     ) {
       errorsList.push(
-        messages.errorMessages.INVAILD_FORMAT_ERROR(
+        messages.errorResponses.INVAILD_FORMAT_ERROR(
           'distribution_country_code',
         ),
       );
@@ -260,7 +260,7 @@ exports.validateEditDistributionInput = async (req, res, next) => {
         !distribution_address?.trim())
     ) {
       errorsList.push(
-        messages.errorMessages.INVAILD_FORMAT_ERROR('distribution_address'),
+        messages.errorResponses.INVAILD_FORMAT_ERROR('distribution_address'),
       );
     }
     if (errorsList.length) {
