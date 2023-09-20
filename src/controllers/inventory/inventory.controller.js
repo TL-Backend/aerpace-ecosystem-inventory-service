@@ -1,26 +1,40 @@
-const {logger} = require("../../utils/logger");
-const {errorResponse, successResponse} = require("../../utils/responseHandler");
-const {statusCodes} = require("../../utils/statusCode");
-const messages = require("./inventory.constant");
-const {getInventoryImportHistory} = require("./inventory.helper");
-exports.getImportHistoryList = async (request, response) => {
-    try {
-        let importHistory = await getInventoryImportHistory(request);
+const { logger } = require('../../utils/logger');
+const {
+  errorResponse,
+  successResponse,
+} = require('../../utils/responseHandler');
+const { statusCodes } = require('../../utils/statusCode');
+const messages = require('./inventory.constant');
+const { getInventoryImportHistory } = require('./inventory.helper');
 
-        return successResponse({
-            data: importHistory.data,
-            req: request,
-            res: response,
-            message: messages.successMessages.CSV_IMPORT_HISTORY_FETCHED_MESSAGE,
-            code: statusCodes.STATUS_CODE_SUCCESS,
-        });
+exports.getImportHistoryList = async (req, res, next) => {
+  try {
+    const { success, data, message, errorCode } =
+      await getInventoryImportHistory(req);
 
-    } catch (error) {
-        logger.error(error);
-        return errorResponse({
-            req: request,
-            res: response,
-            code: statusCodes.STATUS_CODE_FAILURE,
-        });
+    if (!success) {
+      logger.error(message);
+      return errorResponse({
+        req,
+        res,
+        code: errorCode,
+        message,
+      });
     }
-}
+
+    return successResponse({
+      data,
+      req,
+      res,
+      message: messages.successMessages.CSV_IMPORT_HISTORY_FETCHED_MESSAGE,
+      code: statusCodes.STATUS_CODE_SUCCESS,
+    });
+  } catch (error) {
+    logger.error(error);
+    return errorResponse({
+      req,
+      res,
+      code: statusCodes.STATUS_CODE_FAILURE,
+    });
+  }
+};

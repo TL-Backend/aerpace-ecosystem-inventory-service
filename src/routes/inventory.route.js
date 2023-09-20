@@ -1,7 +1,7 @@
 const {
-    getImportHistoryList,
+  getImportHistoryList,
 } = require('../controllers/inventory/inventory.controller');
 
 module.exports = function (app) {
-    app.get('/inventory/csv-history',getImportHistoryList);
+  app.get('/inventory/csv-history', getImportHistoryList);
 };
