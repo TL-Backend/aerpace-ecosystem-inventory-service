@@ -1,11 +1,13 @@
 const { sequelize } = require("../../services/aerpace-ecosystem-backend-db/src/databases/postgresql/models")
 const { logger } = require("../../utils/logger")
 const { statusCodes } = require("../../utils/statusCode")
-const { filterCondition, successResponses, deviceStatus } = require("./inventory.constant")
+const { filterCondition, successResponses, deviceStatus, sortOrder } = require("./inventory.constant")
 const { queries } = require("./inventory.query")
 
 exports.getInventory = async ({ params, paginationQuery }) => {
   try {
+    const pageLimit = params.page_limit
+    const pageNumber = params.page_number
     delete params.pageLimit
     delete params.pageNumber
     const filerOptions = []
@@ -21,21 +23,31 @@ exports.getInventory = async ({ params, paginationQuery }) => {
     if (params.color) {
       filerOptions.push(`${filterCondition.color} = '${params.color.trim()}'`)
     }
-    if (params.device_assign_status && params.device_assign_status.toLowerCase().trim() === deviceStatus.ASSIGNED){
+    if (params.status && params.status.trim() === deviceStatus.ASSIGNED) {
       filerOptions.push(`${filterCondition.distrubution_id} is NOT NULL`)
     }
-    if (params.device_assign_status && params.device_assign_status.toLowerCase().trim() === deviceStatus.UNASSIGNED){
+    if (params.status && params.status.trim() === deviceStatus.UNASSIGNED) {
       filerOptions.push(`${filterCondition.distrubution_id} is NULL`)
     }
     let modelFilter = ''
     if (filerOptions.length > 0) {
       modelFilter = `WHERE ${filerOptions.join(" AND ")}`
     }
-    const data = await sequelize.query(`${queries.getInventory} ${modelFilter} ${paginationQuery}`)
+    const inventoryData = await sequelize.query(`${queries.getInventory} ${modelFilter} ${sortOrder} ${paginationQuery}`)
+    let totalPages = Math.round(
+      parseInt(inventoryData[0][0]?.data_count || 0) / parseInt(pageLimit || 10),
+    );
+    const data = {
+      devices: inventoryData[0],
+      total_count: inventoryData[0][0] ? parseInt(inventoryData[0][0].data_count) : 0,
+      page_limit: parseInt(pageLimit) || 10,
+      page_number: parseInt(pageNumber) || 1,
+      total_pages: totalPages !== 0 ? totalPages : 1,
+    }
     return {
       success: true,
       message: successResponses.DATA_FETCH_SUCCESSFULL,
-      data: data[0],
+      data: data,
     };
   } catch (err) {
     logger.error(err);

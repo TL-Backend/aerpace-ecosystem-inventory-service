@@ -26,7 +26,7 @@ exports.listInventory = async (req, res, next) => {
     return successResponse({
       res,
       data: inventoryData,
-      message: successResponses.DATA_FETCH_SUCCESSFULL.message,
+      message: successResponses.DATA_FETCH_SUCCESSFULL,
       code: statusCodes.STATUS_CODE_SUCCESS,
     });
   } catch (err) {
