@@ -5,7 +5,11 @@ const {
   aergov_roles,
 } = require('../../services/aerpace-ecosystem-backend-db/src/databases/postgresql/models');
 const { logger } = require('../../utils/logger');
-const { getDataById } = require('./distribution.query');
+const {
+  getDataById,
+  getListDistributorsQuery,
+  getFiltersQuery,
+} = require('./distribution.query');
 const { statusCodes } = require('../../utils/statusCode');
 const { dbTables } = require('../../utils/constant');
 const { postAsync } = require('../../utils/request');
@@ -15,6 +19,7 @@ const {
   errorResponses,
   routes,
 } = require('./distribution.constant');
+const { QueryTypes } = require('sequelize');
 const { url } = require('../../../config').getConfig();
 const USER_SERVICE_API = url.user_service;
 
@@ -77,7 +82,7 @@ exports.addDistributionHelper = async (data) => {
         data: null,
       };
     }
-    data.distributor_id = userData.id;
+    data.distributor_id = result.data?.id;
     transaction.commit();
     return {
       success: true,
@@ -86,11 +91,12 @@ exports.addDistributionHelper = async (data) => {
     };
   } catch (err) {
     logger.error(err.message);
+    logger.error(err);
     transaction.rollback();
     return {
       success: false,
-      errorCode: err.error.code || statusCodes.STATUS_CODE_FAILURE,
-      message: err.error.message || errorResponses.ERROR_FOUND,
+      errorCode: err.error?.code || statusCodes.STATUS_CODE_FAILURE,
+      message: err.error?.message || errorResponses.ERROR_FOUND,
       data: null,
     };
   }
@@ -150,7 +156,7 @@ exports.editDistributionHelper = async (data, id) => {
       return {
         success: false,
         errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
-        message: errorResponses.INVALID_DISTRIBUTION_ID,
+        message: 'Invalid distribution_id',
         data: null,
       };
     }
@@ -172,7 +178,7 @@ exports.editDistributionHelper = async (data, id) => {
     data.distribution_id = distributionData.id;
     return {
       success: true,
-      message: successResponses.DISTRIBUTION_UPDATED_MESSAGE,
+      message: 'Distribution details succesfully modified',
       data: data,
     };
   } catch (err) {
@@ -180,7 +186,50 @@ exports.editDistributionHelper = async (data, id) => {
     return {
       success: false,
       errorCode: statusCodes.STATUS_CODE_FAILURE,
-      message: errorResponses.ERROR_FOUND,
+      message: 'Error while modifiying distribution details',
+      data: null,
+    };
+  }
+};
+
+exports.listDistributionsHelper = async (params) => {
+  try {
+    const query = getListDistributorsQuery(params);
+    const data = await sequelize.query(query, { raw: true });
+    let filterData,
+      filterQuery,
+      regions = [];
+
+    if (params.page_number === '1' || !params.page_number) {
+      filterQuery = getFiltersQuery;
+      filterData = await sequelize.query(filterQuery);
+      regions = filterData[0].map((row) => row.region);
+    }
+    let totalPages = Math.round(
+      parseInt(data[0][0]?.data_count || 0) / parseInt(params.page_limit || 10),
+    );
+    return {
+      success: true,
+      data: {
+        distributions: data[0],
+        page_limit: parseInt(params.page_limit) || 10,
+        page_number: parseInt(params.page_number) || 1,
+        total_pages: totalPages,
+        total_count: parseInt(data[0][0].data_count || 0),
+        filters: regions.length
+          ? {
+              regions: regions,
+            }
+          : {},
+      },
+      message: successResponses.DISTRIBUTION_UPDATED_MESSAGE,
+    };
+  } catch (err) {
+    logger.error(err);
+    return {
+      success: false,
+      errorCode: statusCodes.STATUS_CODE_FAILURE,
+      message: 'Error while fetching distribution details',
       data: null,
     };
   }

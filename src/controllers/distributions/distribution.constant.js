@@ -9,6 +9,7 @@ exports.errorResponses = {
   INVAILD_SEARCH_KEY: 'Invalid search key, it should be string!',
   PAGE_LIMIT_MESSAGE: 'Page limit should be positive',
   PAGE_NUMBER_MESSAGE: 'Page number should be positive',
+  INVALID_REGION_FILTER: 'Invalid region filter, it should be a string',
   NO_DISTRIBUTION_FOUND: 'No distribution found with this id',
   ERROR_FOUND: `Error while performing the operations`,
   INVALID_DISTRIBUTION_ID: `Provided distribution id is invalid`,

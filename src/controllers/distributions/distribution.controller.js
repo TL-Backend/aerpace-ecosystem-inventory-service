@@ -6,6 +6,7 @@ const { statusCodes } = require('../../utils/statusCode');
 const { logger } = require('../../utils/logger');
 const {
   addDistributionHelper,
+  listDistributionsHelper,
   editDistributionHelper,
 } = require('./distribution.helper');
 const messages = require('./distribution.constant');
@@ -27,7 +28,7 @@ exports.addDistribution = async (req, res) => {
       data: distribution.data,
       req,
       res,
-      message: messages.successMessages.DISTRIBUTION_ADDED_MESSAGE,
+      message: messages.successResponses.DISTRIBUTION_ADDED_MESSAGE,
       code: statusCodes.STATUS_CODE_SUCCESS,
     });
   } catch (err) {
@@ -61,7 +62,38 @@ exports.editDistribution = async (req, res) => {
       data: distributionDetails,
       req,
       res,
-      message: messages.successMessages.DISTRIBUTION_UPDATED_MESSAGE,
+      message: messages.successResponses.DISTRIBUTION_UPDATED_MESSAGE,
+      code: statusCodes.STATUS_CODE_SUCCESS,
+    });
+  } catch (err) {
+    logger.error(err);
+    return errorResponse({
+      req,
+      res,
+      code: statusCodes.STATUS_CODE_FAILURE,
+    });
+  }
+};
+
+exports.listDistributions = async (req, res) => {
+  try {
+    const params = req.query;
+    const distribution = await listDistributionsHelper(params);
+    if (!distribution.success) {
+      logger.error(distribution.data);
+      return errorResponse({
+        req,
+        res,
+        code: statusCodes.STATUS_CODE_FAILURE,
+        error: distribution.data,
+        message: distribution.message,
+      });
+    }
+    return successResponse({
+      data: distribution.data,
+      req,
+      res,
+      message: messages.successResponses.DISTRIBUTIONS_FETCHED_MESSAGE,
       code: statusCodes.STATUS_CODE_SUCCESS,
     });
   } catch (err) {
