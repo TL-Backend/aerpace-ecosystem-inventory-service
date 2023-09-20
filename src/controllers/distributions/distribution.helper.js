@@ -5,7 +5,11 @@ const {
   aergov_roles,
 } = require('../../services/aerpace-ecosystem-backend-db/src/databases/postgresql/models');
 const { logger } = require('../../utils/logger');
-const { getDataById, getListDistributorsQuery, getFiltersQuery } = require('./distribution.query');
+const {
+  getDataById,
+  getListDistributorsQuery,
+  getFiltersQuery,
+} = require('./distribution.query');
 const { statusCodes } = require('../../utils/statusCode');
 const { dbTables } = require('../../utils/constant');
 const { postAsync } = require('../../utils/request');
