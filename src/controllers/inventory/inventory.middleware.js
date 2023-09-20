@@ -8,11 +8,10 @@ const upload = multer({ dest: 'uploads/'});
 
 exports.importCsvMiddleware = upload.single('csv_file');
 
-
 exports.importCsvValidation = async (req, res, next) => {
   try {
-    const csvBufferData = req.file
-    if (!csvBufferData || !csvBufferData.originalname.endsWith(fileExtension)) {
+    const csvData = req.file
+    if (!csvData || !csvData.originalname.endsWith(fileExtension)) {
       throw errorResponses.INVALID_CSV_FILE
     }
     return next()

@@ -12,16 +12,4 @@ SELECT * FROM ${dbTables.DEVICE_VERSION_TABLE} WHERE id = :version_id AND status
 exports.getDevicesWithMacAddress = `
 SELECT EXISTS (SELECT * FROM ${dbTables.DEVICES_TABLE} WHERE mac_number = :mac_number)
 `
-exports.uppdateImportHistoryTable = `UPDATE ${dbTables.DEVICES_IMPORT_HISTORY} SET status = :status WHERE id = :id;`
-
-// exports.getVersionForCondt = `
-// SELECT *
-// FROM aergov_device_versions
-// WHERE id = :version_id
-//   AND status = ${activityStatus.ACTIVE}
-//   AND EXISTS (
-//     SELECT 1
-//     FROM aergov_devices
-//     WHERE mac_number = :mac_number
-//   );
-// `
+exports.updateImportHistoryTable = `UPDATE ${dbTables.DEVICES_IMPORT_HISTORY} SET status = :status,input_file = :input_file, input_file_response = :input_file_response,uploaded_at = :uploaded_at  WHERE id = :id;`
