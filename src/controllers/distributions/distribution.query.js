@@ -52,3 +52,8 @@ exports.getDataById = (table) => {
     WHERE id = :id_key
     `;
 };
+
+exports.getDistributionByEmailQuery = `SELECT *
+FROM ${dbTables.DISTRIBUTIONS_TABLE}
+WHERE email = :email
+`;

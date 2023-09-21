@@ -9,6 +9,7 @@ const {
   getDataById,
   getListDistributorsQuery,
   getFiltersQuery,
+  getDistributionByEmailQuery,
 } = require('./distribution.query');
 const { statusCodes } = require('../../utils/statusCode');
 const { dbTables } = require('../../utils/constant');
@@ -26,6 +27,17 @@ const USER_SERVICE_API = url.user_service;
 exports.addDistributionHelper = async (data) => {
   const transaction = await sequelize.transaction();
   try {
+    const distributionExist = await this.checkDistributionExistWithEmail(
+      data.distribution_email,
+    );
+    if (distributionExist.data || !distributionExist.success) {
+      return {
+        success: false,
+        errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
+        message: 'distribution already exist with this email',
+        data: null,
+      };
+    }
     const distributionRole = await aergov_roles.findOne({
       where: { role_name: defaults.DEFAULT_DISTRIBUTION_ROLE_NAME },
       raw: true,
@@ -97,6 +109,29 @@ exports.addDistributionHelper = async (data) => {
       success: false,
       errorCode: err.error?.code || statusCodes.STATUS_CODE_FAILURE,
       message: err.error?.message || errorResponses.ERROR_FOUND,
+      data: null,
+    };
+  }
+};
+
+exports.checkDistributionExistWithEmail = async (email) => {
+  try {
+    const query = getDistributionByEmailQuery;
+    const data = await sequelize.query(query, {
+      replacements: { email },
+      type: sequelize.QueryTypes.SELECT,
+    });
+    return {
+      success: true,
+      message: 'Data fetched sucessfully',
+      data: data[0],
+    };
+  } catch (err) {
+    logger.error(err);
+    return {
+      success: false,
+      errorCode: statusCodes.STATUS_CODE_FAILURE,
+      message: 'Error while fetching data',
       data: null,
     };
   }
