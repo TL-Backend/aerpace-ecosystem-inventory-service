@@ -4,6 +4,8 @@ exports.successResponses = {
     message: '',
   },
   DATA_FETCH_SUCCESSFULL: 'data fetched successfully',
+  CSV_IMPORT_HISTORY_FETCHED_MESSAGE:
+    'Inventory import history fetched successfully',
 };
 
 exports.errorResponses = {
@@ -25,6 +27,6 @@ exports.filterCondition = {
 exports.sortOrder = `ORDER BY ad.created_at DESC`
 
 exports.deviceStatus = {
-  ASSIGNED:'ASSIGNED',
+  ASSIGNED: 'ASSIGNED',
   UNASSIGNED: 'UNASSIGNED'
 }

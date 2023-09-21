@@ -4,6 +4,7 @@ const { errorResponse, successResponse } = require("../../utils/responseHandler"
 const { statusCodes } = require("../../utils/statusCode")
 const { successResponses } = require("./inventory.constant")
 const { getInventory } = require("./inventory.helper")
+const messages = require('./inventory.constant');
 
 exports.listInventory = async (req, res, next) => {
   try {
@@ -38,3 +39,36 @@ exports.listInventory = async (req, res, next) => {
     });
   }
 }
+
+
+exports.getImportHistoryList = async (req, res, next) => {
+  try {
+    const { success, data, message, errorCode } =
+      await getInventoryImportHistory(req);
+
+    if (!success) {
+      logger.error(message);
+      return errorResponse({
+        req,
+        res,
+        code: errorCode,
+        message,
+      });
+    }
+
+    return successResponse({
+      data,
+      req,
+      res,
+      message: messages.successMessages.CSV_IMPORT_HISTORY_FETCHED_MESSAGE,
+      code: statusCodes.STATUS_CODE_SUCCESS,
+    });
+  } catch (error) {
+    logger.error(error);
+    return errorResponse({
+      req,
+      res,
+      code: statusCodes.STATUS_CODE_FAILURE,
+    });
+  }
+};

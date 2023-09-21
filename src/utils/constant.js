@@ -6,5 +6,14 @@ exports.dbTables = {
   DEVICE_TABLE: 'aergov_devices',
   DEVICE_VERSION_TABLE: 'aergov_device_versions',
   DEVICE_VARIANT_TABLE: 'aergov_device_variants',
-  AERGOV_DISTRIBUTION: 'aergov_distributions'
+  AERGOV_DISTRIBUTION: 'aergov_distributions',
+  IMPORT_HISTORY_TABLE: 'aergov_device_import_histories',
+};
+
+exports.successResponses = {
+  SUCCESS: `operation performed successfully`,
+};
+
+exports.errorResponses = {
+  FAILURE: `Failed to perform the operation`,
 };
