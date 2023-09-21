@@ -1,16 +1,19 @@
 exports.successResponses = {
   PROCESS_COMPLETED: 'process completed successfully',
+  FILE_UPLOADED_SUCCESSFULLY: 'File uploaded successfully:',
+  FILE_DELETED_SUCCESSFULLY: 'File deleted successfully'
 };
 
 exports.errorResponses = {
-  INVALID_CSV_FILE: 'invalid csv file or No file uploaded',
-  INVALID_MAC_ADDRESS: 'invalid mac address',
-  INVALID_VERSION_ID: 'invalid version id',
-  INVALID_COLOR: 'invalid color or color is empty',
-  INTERNAL_ERROR: 'internal error',
-  IN_PROGRESS: 'inporgress',
-  PROCESS_FAILED: 'process failed',
-  DUPLICATE_DATA: 'duplicate data'
+  INVALID_CSV_FILE: 'Invalid csv file or No file uploaded',
+  INVALID_CSV_FORMAT: 'Invalid csv format',
+  INVALID_MAC_ADDRESS: 'Invalid mac address',
+  INVALID_VERSION_ID: 'Invalid version id',
+  INVALID_COLOR: 'Invalid color or color is empty',
+  INTERNAL_ERROR: 'Internal error',
+  IN_PROGRESS: 'Inporgress',
+  PROCESS_FAILED: 'Process failed',
+  DUPLICATE_DATA: 'Duplicate data',
 };
 
 exports.status = {

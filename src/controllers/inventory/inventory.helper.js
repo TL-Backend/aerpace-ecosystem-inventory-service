@@ -20,7 +20,7 @@ exports.extractCsv = async ({ csvFile }) => {
     uploadResult = uploadData
 
     if (!csvFile.originalname.endsWith(fileExtension)) {
-      throw errorResponses.INVALID_CSV_FILE
+      throw errorResponses.INVALID_CSV_FORMAT
     }
 
     const { publicUrl } = await uploadCsvToS3({ file: csvFile, filePath: csvFile.path, location: process.env.INPUT_FILE_LOCATION })
@@ -105,7 +105,7 @@ exports.createEntryOfImportHistory = async ({ csvFile }) => {
       file_name: csvFile.originalname,
       input_file: 'null',
       status: status.IN_PROGRESS,
-      input_file_response: 'null',
+      response_file: 'null', 
       uploaded_by: 'u_1',
     })
     return { uploadData }
@@ -136,13 +136,13 @@ const uploadCsvToS3 = async ({ file, filePath, location }) => {
     const uploadPromise = s3.upload(params).promise();
     try {
       const data = await uploadPromise;
-      logger.info('File uploaded successfully:', data.Location);
+      logger.info(successResponses.FILE_UPLOADED_SUCCESSFULLY, data.Location);
       publicUrl = `${process.env.S3_PUBLIC_URL}${location}/${currentTime}-${file.originalname}`;
       return {
         publicUrl
       }
     } catch (err) {
-      logger.error('Error uploading file:', err);
+      logger.error(err);
     }
   } catch (err) {
     logger.error(err)
@@ -165,9 +165,9 @@ exports.convertCsvToJson = async ({ csvFilePath }) => {
     });
     fs.unlink(csvFilePath, (err) => {
       if (err) {
-        logger.error('Error deleting file:', err);
+        logger.error(err);
       } else {
-        logger.info('File deleted successfully');
+        logger.info(successResponses.FILE_DELETED_SUCCESSFULLY);
       }
     });
     return { jsonData: updatedData }
@@ -211,25 +211,18 @@ exports.validateData = async ({ jsonData }) => {
 
 const removeDuplicatedData = async ({ jsonData }) => {
   try {
-    let duplicateMacAddress = new Set();
-    let duplicateVersionId = new Set();
+    const duplicateMacAddress = new Set();
     let duplicateObjects = new Set();
-    let uniqueListOfObjects = [];
     let duplicateListOfObjects = [];
+    let uniqueListOfObjects = [];
 
     jsonData.forEach(object => {
-
-      if (!duplicateMacAddress.has(object.mac_address) && !duplicateVersionId.has(object.version_id)) {
-        duplicateMacAddress.add(object.mac_address);
-        duplicateVersionId.add(object.version_id);
+      if (!duplicateMacAddress.has(object.mac_address)) {
+        duplicateMacAddress.add(object.mac_address)
         uniqueListOfObjects.push(object);
-      } else {
-        if (duplicateMacAddress.has(object.mac_address)) {
-          duplicateObjects.add(object.mac_address);
-        }
-        if (duplicateVersionId.has(object.version_id)) {
-          duplicateObjects.add(object.version_id);
-        }
+      }
+      else {
+        duplicateObjects.add(object.mac_address);
         object.status = status.ERROR
         object.message = errorResponses.DUPLICATE_DATA
         duplicateListOfObjects.push(object);
@@ -237,12 +230,12 @@ const removeDuplicatedData = async ({ jsonData }) => {
     });
 
     uniqueListOfObjects = uniqueListOfObjects.filter(object => {
-      if (duplicateObjects.has(object.mac_address) || duplicateObjects.has(object.version_id)) {
+      if (duplicateObjects.has(object.mac_address)) {
         object.status = status.ERROR
         object.message = errorResponses.DUPLICATE_DATA
         duplicateListOfObjects.push(object)
       }
-      return !duplicateObjects.has(object.mac_address) && !duplicateObjects.has(object.version_id);
+      return !duplicateObjects.has(object.mac_address);
     });
     return { uniqueListOfObjects, duplicateListOfObjects }
   } catch (err) {
