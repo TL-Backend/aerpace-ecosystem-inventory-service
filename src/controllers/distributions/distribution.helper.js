@@ -248,11 +248,7 @@ exports.listDistributionsHelper = async (params) => {
         distributions: data[0],
         page_limit: parseInt(params.page_limit) || 10,
         page_number: parseInt(params.page_number) || 1,
-        total_pages:
-          data[0].length &&
-          data[0][0]?.data_count > parseInt(params.page_limit || 10)
-            ? totalPages
-            : 1,
+        total_pages: totalPages !== 0 ? totalPages : 1,
         total_count: parseInt(data[0][0]?.data_count || 0),
         filters: regions.length
           ? {

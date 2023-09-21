@@ -40,6 +40,7 @@ exports.getListDistributorsQuery = (params) => {
     ${queryFilterCondition}
     ${searchCondition}
     GROUP BY dst.name, dst.id, dst.email, dst.address, dst.region, dst.phone_number, usr.first_name, usr.last_name, usr.address, usr.state, usr.pin_code, usr.phone_number
+    ORDER BY dst.created_at DESC
     ${paginationCondition}
   `;
   return query;
