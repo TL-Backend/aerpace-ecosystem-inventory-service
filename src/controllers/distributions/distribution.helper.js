@@ -198,7 +198,6 @@ exports.editDistributionHelper = async (data, id) => {
     const DistributionParams = {
       name: data.distribution_name,
       region: data.distribution_region,
-      email: data.distribution_email,
       phone_number: data.distribution_phone_number,
       address: data.distribution_address,
       country_code: data.distribution_country_code,
