@@ -249,7 +249,7 @@ exports.listDistributionsHelper = async (params) => {
         page_limit: parseInt(params.page_limit) || 10,
         page_number: parseInt(params.page_number) || 1,
         total_pages: totalPages,
-        total_count: parseInt(data[0][0].data_count || 0),
+        total_count: parseInt(data[0][0]?.data_count || 0),
         filters: regions.length
           ? {
               regions: regions,

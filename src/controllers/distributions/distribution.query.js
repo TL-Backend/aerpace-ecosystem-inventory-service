@@ -33,13 +33,13 @@ exports.getListDistributorsQuery = (params) => {
   let query = `
     SELECT 
       COUNT(*) OVER() AS data_count,
-      dst.name,dst.email, dst.address, dst.region, dst.phone_number,
+      dst.id, dst.name,dst.email, dst.address, dst.region, dst.phone_number,
       json_build_object('first_name', usr.first_name, 'last_name', usr.last_name, 'address', usr.address, 'state', usr.state, 'pincode', usr.pin_code, 'phone_number', usr.phone_number) as distributor
     FROM ${dbTables.DISTRIBUTIONS_TABLE} as dst
     LEFT JOIN ${dbTables.USERS_TABLE} as usr on usr.id = dst.user_id
     ${queryFilterCondition}
     ${searchCondition}
-    GROUP BY dst.name, dst.email, dst.address, dst.region, dst.phone_number, usr.first_name, usr.last_name, usr.address, usr.state, usr.pin_code, usr.phone_number
+    GROUP BY dst.name, dst.id, dst.email, dst.address, dst.region, dst.phone_number, usr.first_name, usr.last_name, usr.address, usr.state, usr.pin_code, usr.phone_number
     ${paginationCondition}
   `;
   return query;
