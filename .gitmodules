@@ -1,3 +1,1 @@
-[submodule "src/services/aerpace-ecosystem-backend-db"]
-	path = src/services/aerpace-ecosystem-backend-db
-	url = git@github.com:TL-Backend/aerpace-ecosystem-backend-db.git
+
