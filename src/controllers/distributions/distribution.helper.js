@@ -34,7 +34,7 @@ exports.addDistributionHelper = async (data) => {
       return {
         success: false,
         errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
-        message: 'distribution already exist with this email',
+        message: errorResponses.DISTRIBUTIONS_EXIST_WITH_THIS_EMAIL,
         data: null,
       };
     }
@@ -123,7 +123,7 @@ exports.checkDistributionExistWithEmail = async (email) => {
     });
     return {
       success: true,
-      message: 'Data fetched sucessfully',
+      message: successResponses.DATA_FETCHED,
       data: data[0],
     };
   } catch (err) {
@@ -131,7 +131,7 @@ exports.checkDistributionExistWithEmail = async (email) => {
     return {
       success: false,
       errorCode: statusCodes.STATUS_CODE_FAILURE,
-      message: 'Error while fetching data',
+      message: errorResponses.ERROR_FOUND,
       data: null,
     };
   }
@@ -191,7 +191,7 @@ exports.editDistributionHelper = async (data, id) => {
       return {
         success: false,
         errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
-        message: 'Invalid distribution_id',
+        message: errorResponses.INVALID_DISTRIBUTION_ID,
         data: null,
       };
     }
@@ -213,7 +213,7 @@ exports.editDistributionHelper = async (data, id) => {
     data.distribution_id = distributionData.id;
     return {
       success: true,
-      message: 'Distribution details succesfully modified',
+      message: successResponses.DISTRIBUTION_UPDATED_MESSAGE,
       data: data,
     };
   } catch (err) {
@@ -221,7 +221,7 @@ exports.editDistributionHelper = async (data, id) => {
     return {
       success: false,
       errorCode: statusCodes.STATUS_CODE_FAILURE,
-      message: 'Error while modifiying distribution details',
+      message: errorResponses.ERROR_FOUND,
       data: null,
     };
   }
@@ -264,7 +264,7 @@ exports.listDistributionsHelper = async (params) => {
     return {
       success: false,
       errorCode: statusCodes.STATUS_CODE_FAILURE,
-      message: 'Error while fetching distribution details',
+      message: errorResponses.ERROR_FOUND,
       data: null,
     };
   }

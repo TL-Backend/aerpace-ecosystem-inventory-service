@@ -13,6 +13,7 @@ exports.errorResponses = {
   NO_DISTRIBUTION_FOUND: 'No distribution found with this id',
   ERROR_FOUND: `Error while performing the operations`,
   INVALID_DISTRIBUTION_ID: `Provided distribution id is invalid`,
+  DISTRIBUTIONS_EXIST_WITH_THIS_EMAIL: 'distribution already exist with this email'
 };
 
 exports.successResponses = {
