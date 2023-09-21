@@ -182,28 +182,26 @@ exports.validateData = async ({ jsonData }) => {
     let { uniqueListOfObjects, duplicateListOfObjects } = await removeDuplicatedData({ jsonData })
     invalidEntries = [...duplicateListOfObjects]
     const macAddressRegex = /^([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})$/
-    for (let entry = 0; entry < uniqueListOfObjects.length; entry++) {
+    for (let entry = uniqueListOfObjects.length - 1; entry >= 0; entry--) {
       const object = uniqueListOfObjects[entry];
       const errorList = []
       if (!object.mac_address || !macAddressRegex.test(object.mac_address)) {
         object.status = status.ERROR
         errorList.push(errorResponses.INVALID_MAC_ADDRESS)
-        uniqueListOfObjects.splice(entry, 1)
       }
       if (!object.version_id || !object.version_id.startsWith(levelStarting.version)) {
         object.status = status.ERROR
         errorList.push(errorResponses.INVALID_VERSION_ID)
-        uniqueListOfObjects.splice(entry, 1)
       }
       if (!object.color || typeof (object.color) !== 'string') {
         object.status = status.ERROR
         errorList.push(errorResponses.INVALID_COLOR)
-        uniqueListOfObjects.splice(entry, 1)
       }
       if (errorList.length) {
         object.message = errorList.join(', ')
+        uniqueListOfObjects.splice(entry, 1)
+        invalidEntries.push(object)
       }
-      invalidEntries.push(object)
     }
     return { uniqueListOfObjects, invalidEntries }
   } catch (err) {
@@ -255,24 +253,44 @@ const removeDuplicatedData = async ({ jsonData }) => {
 const updateDataBase = async ({ uniqueListOfObjects, invalidEntries, sourceData }) => {
   try {
     let finalList = [...invalidEntries]
+
     await eachLimitPromise(uniqueListOfObjects, eachLimitValue, async obj => {
-      const { mac_address: macAddress, version_id: versionId } = obj
-      const { success: versionStatus, data } = await checkVersionValidity({ versionId })
       let errorList = []
-      if (!versionStatus) {
-        obj.status = status.ERROR
-        errorList.push(errorResponses.INVALID_VERSION_ID)
+      let deviceData
+      const { mac_address: macAddress, version_id: versionId } = obj
+
+      let validVersionId = {}
+      if (!validVersionId.hasOwnProperty(versionId)) {
+        const { success: versionStatus, data } = await checkVersionValidity({ versionId })
+        deviceData = data
+        if (!versionStatus) {
+          obj.status = status.ERROR
+          errorList.push(errorResponses.INVALID_VERSION_ID)
+          validVersionId[versionId] = false;
+        }
+        else {
+          validVersionId[versionId] = true;
+        }
       }
+      else {
+        if (!validVersionId[versionId]) {
+          obj.status = status.ERROR
+          errorList.push(errorResponses.INVALID_VERSION_ID)
+        }
+      }
+
       const { success: macStatus } = await checkMacAddressValidity({ macAddress })
       if (!macStatus) {
         obj.status = status.ERROR
         errorList.push(errorResponses.INVALID_MAC_ADDRESS)
       }
+
       if (errorList.length) {
         obj.message = errorList.join(', ')
       }
+
       if (obj.status === status.IN_PROGRESS) {
-        const { success: dbUploadSuccess } = await this.uploadDeviceToDb({ obj, data, sourceData })
+        const { success: dbUploadSuccess } = await this.uploadDeviceToDb({ obj, data: deviceData, sourceData })
         if (dbUploadSuccess) {
           obj.status = status.SUCCESS
           obj.message = successResponses.PROCESS_COMPLETED
@@ -280,7 +298,6 @@ const updateDataBase = async ({ uniqueListOfObjects, invalidEntries, sourceData 
       }
       finalList.push(obj)
     })
-
     return {
       data: finalList
     }
