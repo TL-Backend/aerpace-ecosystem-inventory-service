@@ -3,17 +3,17 @@ const { errorResponses, fileExtension } = require('./inventory.constant');
 const { errorResponse } = require('../../utils/responseHandler');
 const { logger } = require('../../utils/logger');
 const { statusCodes } = require('../../utils/statusCodes');
-const upload = multer({ dest: 'uploads/'});
+const upload = multer({ dest: 'uploads/' });
 
 exports.importCsvMiddleware = upload.single('csv_file');
 
 exports.importCsvValidation = async (req, res, next) => {
   try {
-    const csvData = req.file
+    const csvData = req.file;
     if (!csvData) {
-      throw errorResponses.INVALID_CSV_FILE
+      throw errorResponses.INVALID_CSV_FILE;
     }
-    return next()
+    return next();
   } catch (err) {
     logger.error(err);
     return errorResponse({
@@ -24,4 +24,4 @@ exports.importCsvValidation = async (req, res, next) => {
       code: statusCodes.STATUS_CODE_INVALID_FORMAT,
     });
   }
-}
+};

@@ -1,14 +1,19 @@
-const { logger } = require("../../utils/logger");
-const { errorResponse, successResponse } = require("../../utils/responseHandler");
-const { statusCodes } = require("../../utils/statusCodes");
-const { errorResponses } = require("./inventory.constant");
-const { processCsvFile } = require("./inventory.helper");
+const { logger } = require('../../utils/logger');
+const {
+  errorResponse,
+  successResponse,
+} = require('../../utils/responseHandler');
+const { statusCodes } = require('../../utils/statusCodes');
+const { errorResponses } = require('./inventory.constant');
+const { processCsvFile } = require('./inventory.helper');
 
 exports.importCsv = async (req, res, next) => {
   try {
-    const csv_file = req.file
-    const { success, errorCode, message, data } = await processCsvFile({ csvFile: csv_file })
-    if(!success){
+    const csv_file = req.file;
+    const { success, errorCode, message, data } = await processCsvFile({
+      csvFile: csv_file,
+    });
+    if (!success) {
       return errorResponse({
         req,
         res,
@@ -30,4 +35,4 @@ exports.importCsv = async (req, res, next) => {
       error: err,
     });
   }
-}
+};
