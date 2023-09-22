@@ -1,5 +1,5 @@
 const { successResponses, errorResponses } = require('./constant');
-const { statusCodes } = require('./statusCodes');
+const { statusCodes } = require('./statusCode');
 
 class HelperResponse {
   constructor({ success, data, errorCode, message }) {
@@ -19,7 +19,7 @@ class HelperResponse {
       if (!message) {
         message = errorResponses.FAILURE;
       }
-      data = null;
+      data = data || null;
       this.errorCode = errorCode;
     }
 
