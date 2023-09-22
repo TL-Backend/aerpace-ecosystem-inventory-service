@@ -223,6 +223,6 @@ fabric.properties
 
 package-lock.json
 .idea/jsLibraryMappings.xml
-aerpace-ecosystem-backend-db
 
 
+config/development.config.json

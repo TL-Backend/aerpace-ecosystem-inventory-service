@@ -1,10 +1,22 @@
 exports.successResponses = {
+    default: {
+    statusCode: 200,
+    message: '',
+  },
+  DATA_FETCH_SUCCESSFULL: 'data fetched successfully',
+  CSV_IMPORT_HISTORY_FETCHED_MESSAGE:
+    'Inventory import history fetched successfully',
   PROCESS_COMPLETED: 'Process completed successfully',
   FILE_UPLOADED_SUCCESSFULLY: 'File uploaded successfully:',
   FILE_DELETED_SUCCESSFULLY: 'File deleted successfully',
 };
 
 exports.errorResponses = {
+  default: {
+    message: '',
+  },
+  PAGE_LIMIT_INVALID: 'pageLimit is empty or invalid',
+  PAGE_NUMBER_INVALID: 'pageNumber is empty or invalid',
   INVALID_CSV_FILE: 'Invalid csv file or No file uploaded',
   INVALID_CSV_FORMAT: 'Invalid csv format',
   INVALID_MAC_ADDRESS: 'Invalid mac address',
@@ -14,8 +26,23 @@ exports.errorResponses = {
   IN_PROGRESS: 'Inporgress',
   PROCESS_FAILED: 'Process failed',
   DUPLICATE_DATA: 'Duplicate data',
-  ERROR_OCCURED_AT_VALIDATION_AND_CREATION: 'error occured while validating or creating device in database',
+  DB_FAILED: 'dbFailed'
 };
+
+exports.filterCondition = {
+  model_name: `adm.name`,
+  variant_name: `adva.name`,
+  version_name: `adve.name`,
+  distrubution_id: `ad.distribution_id`,
+  color: `ad.color`
+}
+
+exports.sortOrder = `ORDER BY ad.created_at DESC`
+
+exports.deviceStatus = {
+  ASSIGNED: 'ASSIGNED',
+  UNASSIGNED: 'UNASSIGNED'
+}
 
 exports.status = {
   IN_PROGRESS: 'INPROGRESS',
