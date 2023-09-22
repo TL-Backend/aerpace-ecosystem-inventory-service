@@ -5,9 +5,9 @@ exports.createImportHistoryEntry = `
 INSERT INTO ${dbTables.DEVICES_IMPORT_HISTORY} (file_name,input_file,status,input_file_response,uploaded_by,uploaded_at)
 VALUES (:file_name, :input_file, :status, :input_file_response, :uploaded_by, :uploaded_at);
 `
-exports.getVersionDetails = `
-SELECT * FROM ${dbTables.DEVICE_VERSION_TABLE} WHERE id = :version_id AND status = '${activityStatus.ACTIVE}'
-`
+// exports.getVersionDetails = `
+// SELECT * FROM ${dbTables.DEVICE_VERSION_TABLE} WHERE id = :version_id AND status = '${activityStatus.ACTIVE}'
+// `
 
 exports.getDevicesWithMacAddress = `
 SELECT EXISTS (SELECT * FROM ${dbTables.DEVICES_TABLE} WHERE mac_number = :mac_number)

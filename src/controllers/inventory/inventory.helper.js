@@ -1,20 +1,20 @@
 const async = require('async');
 const json2csv = require('json2csv').parse
 const {
-  sequelize, aergov_devices, aergov_device_import_histories
+  sequelize, aergov_devices, aergov_device_import_histories, aergov_device_versions
 } = require('../../services/aerpace-ecosystem-backend-db/src/databases/postgresql/models');
 const csv = require('csvtojson');
 const AWS = require('aws-sdk')
 const moment = require('moment')
 const fs = require('fs')
-const { getVersionDetails, getDevicesWithMacAddress, updateImportHistoryTable } = require('./inventory.query');
+const { getDevicesWithMacAddress, updateImportHistoryTable } = require('./inventory.query');
 const { logger } = require('../../utils/logger');
-const { errorResponses, status, eachLimitValue, successResponses, responseFileLocation, fileExtension, momentFormat, csvFields } = require('./inventory.constant');
+const { errorResponses, status, eachLimitValue, successResponses, responseFileLocation, fileExtension, momentFormat, csvFields, activityStatus, keyWords } = require('./inventory.constant');
 const { levelStarting } = require('../../utils/constant');
 const { statusCodes } = require('../../utils/statusCodes');
 
 exports.extractCsv = async ({ csvFile }) => {
-  let uploadResult, inputDataUrl
+  let uploadResult, inputDataUrl, processStatus
   try {
     let { uploadData } = await this.createEntryOfImportHistory({ csvFile })
     uploadResult = uploadData
@@ -23,27 +23,41 @@ exports.extractCsv = async ({ csvFile }) => {
       throw errorResponses.INVALID_CSV_FORMAT
     }
 
-    const { publicUrl } = await uploadCsvToS3({ file: csvFile, filePath: csvFile.path, location: process.env.INPUT_FILE_LOCATION })
+    const { publicUrl } = await this.uploadCsvToS3({ file: csvFile, filePath: csvFile.path, location: process.env.INPUT_FILE_LOCATION })
     inputDataUrl = publicUrl
 
     const { jsonData } = await this.convertCsvToJson({ csvFilePath: csvFile.path })
 
-    const { uniqueListOfObjects, invalidEntries } = await this.validateData({ jsonData })
+    const { validEntries, invalidEntries } = await this.validateEachEntry({ jsonData })
 
-    const { data: finalList } = await updateDataBase({ uniqueListOfObjects, invalidEntries, sourceData: uploadData })
+    const { data: finalList, invalidEntries: rejectedEntries } = await this.validateAndCreateDeviceEntries({ validEntries, invalidEntries, sourceData: uploadData })
 
-    const { responsePublicUrl } = await this.convertJsonToCsv({ finalList, csvFile })
+    const { responsePublicUrl } = await this.convertJsonToCsvAndUploadCsv({ finalList, csvFile })
+
+    console.log(rejectedEntries.length === jsonData.length);
+    if (rejectedEntries.length === jsonData.length) {
+      processStatus = status.FAILED
+    }
+    else if (rejectedEntries.length === 0) {
+      processStatus = status.COMPLETED
+    }
+    else {
+      processStatus = status.PATIALLY_COMPLETED
+    }
 
     await this.updateImportHistory(
       {
         uploadData: uploadResult,
         inputPublicUrl: publicUrl,
         responsePublicUrl,
-        status: status.COMPLETED
+        status: processStatus
       })
     return {
       success: true,
-      message: successResponses.PROCESS_COMPLETED,
+      message: `${keyWords.process} ${processStatus}`,
+      data: {
+        response_file_url: responsePublicUrl
+      }
     };
   }
   catch (err) {
@@ -52,12 +66,20 @@ exports.extractCsv = async ({ csvFile }) => {
       {
         uploadData: uploadResult,
         inputPublicUrl: inputDataUrl,
-        status: status.FAILED
+        status: processStatus
       })
+    if (processStatus === status.PATIALLY_COMPLETED) {
+      return {
+        success: false,
+        errorCode: statusCodes.STATUS_CODE_FAILURE,
+        message: `${keyWords.process} ${processStatus}`,
+        data: null,
+      };
+    }
     return {
       success: false,
       errorCode: statusCodes.STATUS_CODE_FAILURE,
-      message: err.message,
+      message: `${keyWords.process} ${status.FAILED}`,
       data: null,
     };
   }
@@ -76,13 +98,13 @@ exports.updateImportHistory = async ({ uploadData, inputPublicUrl, responsePubli
   }
 }
 
-exports.convertJsonToCsv = async ({ finalList, csvFile }) => {
+exports.convertJsonToCsvAndUploadCsv = async ({ finalList, csvFile }) => {
   try {
     finalList.sort((a, b) => a.sequence - b.sequence);
     const fields = csvFields
     const csv = json2csv(finalList, { fields });
     fs.writeFileSync(responseFileLocation, csv, 'utf-8');
-    const { publicUrl } = await uploadCsvToS3({ file: csvFile, filePath: responseFileLocation, location: process.env.RESPONSE_FILE_LOCATION })
+    const { publicUrl } = await this.uploadCsvToS3({ file: csvFile, filePath: responseFileLocation, location: process.env.RESPONSE_FILE_LOCATION })
     fs.unlink(responseFileLocation, (err) => {
       if (err) {
         logger.error(err);
@@ -103,10 +125,8 @@ exports.createEntryOfImportHistory = async ({ csvFile }) => {
   try {
     const uploadData = await aergov_device_import_histories.create({
       file_name: csvFile.originalname,
-      input_file: 'null',
       status: status.IN_PROGRESS,
-      response_file: 'null',
-      uploaded_by: 'u_1',
+      uploaded_by: 'u_1', // TODO after implementing RBAC
     })
     return { uploadData }
   } catch (err) {
@@ -114,7 +134,7 @@ exports.createEntryOfImportHistory = async ({ csvFile }) => {
   }
 }
 
-const uploadCsvToS3 = async ({ file, filePath, location }) => {
+exports.uploadCsvToS3 = async ({ file, filePath, location }) => {
   try {
     AWS.config.update({
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -176,11 +196,18 @@ exports.convertCsvToJson = async ({ csvFilePath }) => {
   }
 }
 
-exports.validateData = async ({ jsonData }) => {
+exports.validateEachEntry = async ({ jsonData }) => {
   try {
-    let invalidEntries = []
-    let { uniqueListOfObjects, duplicateListOfObjects } = await removeDuplicatedData({ jsonData })
-    invalidEntries = [...duplicateListOfObjects]
+    let { uniqueListOfObjects, duplicateListOfObjects } = await this.removeDuplicatedData({ jsonData })
+    let { uniqueListOfObjects: validEntries, duplicateListOfObjects: invalidEntries } = await this.validateUniqueEntries({ uniqueListOfObjects, duplicateListOfObjects })
+    return { validEntries, invalidEntries }
+  } catch (err) {
+    logger.error(err);
+  }
+}
+
+exports.validateUniqueEntries = async ({ uniqueListOfObjects, duplicateListOfObjects }) => {
+  try {
     const macAddressRegex = /^([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})$/
     for (let entry = uniqueListOfObjects.length - 1; entry >= 0; entry--) {
       const object = uniqueListOfObjects[entry];
@@ -200,16 +227,16 @@ exports.validateData = async ({ jsonData }) => {
       if (errorList.length) {
         object.message = errorList.join(', ')
         uniqueListOfObjects.splice(entry, 1)
-        invalidEntries.push(object)
+        duplicateListOfObjects.push(object)
       }
     }
-    return { uniqueListOfObjects, invalidEntries }
+    return { uniqueListOfObjects, duplicateListOfObjects }
   } catch (err) {
-    logger.error(err);
+    logger.error(err)
   }
 }
 
-const removeDuplicatedData = async ({ jsonData }) => {
+exports.removeDuplicatedData = async ({ jsonData }) => {
   try {
     const duplicateMacAddress = new Set();
     let duplicateObjects = new Set();
@@ -243,18 +270,16 @@ const removeDuplicatedData = async ({ jsonData }) => {
   }
 }
 
-const updateDataBase = async ({ uniqueListOfObjects, invalidEntries, sourceData }) => {
+exports.validateAndCreateDeviceEntries = async ({ validEntries, invalidEntries, sourceData }) => {
   try {
     let finalList = [...invalidEntries]
     let validVersionId = {}
-    await eachLimitPromise(uniqueListOfObjects, eachLimitValue, async obj => {
+    await eachLimitPromise(validEntries, eachLimitValue, async obj => {
       let errorList = []
-      let deviceData
       const { mac_address: macAddress, version_id: versionId } = obj
 
       if (!validVersionId.hasOwnProperty(versionId)) {
         const { success: versionStatus, data } = await checkVersionValidity({ versionId })
-        deviceData = data
         if (!versionStatus) {
           obj.status = status.ERROR
           errorList.push(errorResponses.INVALID_VERSION_ID)
@@ -285,19 +310,28 @@ const updateDataBase = async ({ uniqueListOfObjects, invalidEntries, sourceData 
 
       if (errorList.length) {
         obj.message = errorList.join(', ')
+        invalidEntries.push(obj)
       }
 
-      if (obj.status === status.IN_PROGRESS) {
-        const { success: dbUploadSuccess } = await this.uploadDeviceToDb({ obj, data: validVersionId[versionId].data, sourceData })
-        if (dbUploadSuccess) {
-          obj.status = status.SUCCESS
-          obj.message = successResponses.PROCESS_COMPLETED
+      try {
+        if (obj.status === status.IN_PROGRESS) {
+          const { success: dbUploadSuccess } = await this.createDeviceEntry({ obj, data: validVersionId[versionId].data, sourceData })
+          if (dbUploadSuccess) {
+            obj.status = status.SUCCESS
+            obj.message = successResponses.PROCESS_COMPLETED
+          }
         }
+      } catch (err) {
+        obj.status = status.SUCCESS
+        obj.message = errorResponses.DB_FAILED
+        invalidEntries.push(obj)
       }
+
       finalList.push(obj)
     })
     return {
-      data: finalList
+      data: finalList,
+      invalidEntries
     }
   } catch (err) {
     logger.error(err)
@@ -320,11 +354,13 @@ const eachLimitPromise = function eachLimitPromise(data, limit, operator) {
 
 const checkVersionValidity = async ({ versionId }) => {
   try {
-    const data = await sequelize.query(getVersionDetails, {
-      replacements: { version_id: versionId },
-      type: sequelize.QueryTypes.SELECT,
+    const data = await aergov_device_versions.findOne({
+      where: {
+        id: versionId,
+        status: `${activityStatus.ACTIVE}`
+      }
     })
-    if (!data[0]) {
+    if (!data) {
       return {
         success: false,
         data: null
@@ -332,7 +368,7 @@ const checkVersionValidity = async ({ versionId }) => {
     }
     return {
       success: true,
-      data: data[0]
+      data: data.dataValues
     }
   } catch (err) {
     logger.error(err)
@@ -358,7 +394,7 @@ const checkMacAddressValidity = async ({ macAddress }) => {
   }
 }
 
-exports.uploadDeviceToDb = async ({ obj, data, sourceData }) => {
+exports.createDeviceEntry = async ({ obj, data, sourceData }) => {
   try {
     const uploadData = await aergov_devices.create({
       name: data.name,

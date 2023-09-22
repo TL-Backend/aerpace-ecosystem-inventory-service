@@ -14,14 +14,20 @@ exports.errorResponses = {
   IN_PROGRESS: 'Inporgress',
   PROCESS_FAILED: 'Process failed',
   DUPLICATE_DATA: 'Duplicate data',
+  DB_FAILED: 'dbFailed'
 };
 
 exports.status = {
   IN_PROGRESS: 'INPROGRESS',
   COMPLETED: 'COMPLETED',
   FAILED: 'FAILED',
+  PATIALLY_COMPLETED: 'partially completed',
   ERROR: 'false',
   SUCCESS: 'true'
+}
+
+exports.keyWords = {
+  process: `process`
 }
 
 exports.csvFields = ['mac_address', 'version_id', 'color', 'status', 'message']

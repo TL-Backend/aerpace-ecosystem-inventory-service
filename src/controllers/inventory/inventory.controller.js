@@ -13,7 +13,7 @@ exports.importCsv = async (req, res, next) => {
         req,
         res,
         code: errorCode,
-        message: errorResponses.PROCESS_FAILED,
+        message: message,
       });
     }
     return successResponse({
