@@ -33,7 +33,7 @@ exports.errorResponses = {
   INVALID_REGION_FILTER: 'Invalid region filter, it should be a string',
   NO_DISTRIBUTION_FOUND: 'No distribution found with this id',
   ERROR_FOUND: `Error while performing the operations`,
-  INVALID_DISTRIBUTION_ID: `Provided distribution id is invalid`,
+  INVALID_DISTRIBUTION: `Provided distribution id is invalid`,
   DISTRIBUTIONS_EXIST_WITH_THIS_EMAIL:
     'distribution already exist with this email',
 };

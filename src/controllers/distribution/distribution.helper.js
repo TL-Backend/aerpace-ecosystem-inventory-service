@@ -271,7 +271,7 @@ exports.editDistributionHelper = async (data, id) => {
       return {
         success: false,
         errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
-        message: errorResponses.INVALID_DISTRIBUTION_ID,
+        message: errorResponses.INVALID_DISTRIBUTION,
         data: null,
       };
     }
