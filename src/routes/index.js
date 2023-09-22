@@ -4,7 +4,6 @@ require('./sample.route')(router);
 require('./distribution.route')(router);
 require('./inventory.route')(router);
 
-
 module.exports = {
   router,
 };

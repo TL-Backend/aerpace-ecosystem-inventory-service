@@ -6,10 +6,12 @@ const {
 
 const { statusCodes } = require('../../utils/statusCode');
 const messages = require('./distribution.constant');
-const { unassignDevicesHelper, addDistributionHelper,
+const {
+  unassignDevicesHelper,
+  addDistributionHelper,
   listDistributionsHelper,
-  editDistributionHelper, } = require('./distribution.helper');
-
+  editDistributionHelper,
+} = require('./distribution.helper');
 
 exports.unassignDevices = async (req, res, next) => {
   try {
@@ -21,6 +23,7 @@ exports.unassignDevices = async (req, res, next) => {
       return errorResponse({
         req,
         res,
+        data,
         code: errorCode,
         message,
       });
@@ -42,7 +45,6 @@ exports.unassignDevices = async (req, res, next) => {
     });
   }
 };
-
 
 exports.addDistribution = async (req, res) => {
   try {

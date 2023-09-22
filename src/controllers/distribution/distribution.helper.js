@@ -30,6 +30,8 @@ const USER_SERVICE_API = url.user_service;
 exports.unassignDevicesHelper = async (params) => {
   try {
     const { distribution_id: distributionId, devices } = params;
+    let failedDevises = [];
+    let validDevices = [];
 
     const distribution = await aergov_distributions.findOne({
       where: { id: distributionId },
@@ -44,32 +46,64 @@ exports.unassignDevicesHelper = async (params) => {
       });
     }
 
-    const isValidDevicesToUnassign = await sequelize.query(
-      validateDevicesToUnassign,
-      {
-        replacements: { devices, distribution_id: distributionId },
-        raw: true,
-      },
-    );
+    devices?.forEach((device) => {
+      if (typeof device === 'string') {
+        validDevices.push(device);
+      }
+      if (typeof device !== 'string') {
+        failedDevises.push(device);
+      }
+    });
 
-    if (!isValidDevicesToUnassign[0][0]?.result) {
+    if (validDevices.length) {
+      console.log(validDevices, distributionId);
+
+      const deviceValidation = await sequelize.query(
+        validateDevicesToUnassign,
+        {
+          replacements: {
+            devices: validDevices,
+            distribution_id: distributionId,
+          },
+          raw: true,
+        },
+      );
+
+      console.log(deviceValidation[0][0]);
+
+      if (deviceValidation[0][0]?.success_ids.length) {
+        await aergov_devices.update(
+          { distribution_id: null },
+          {
+            where: { mac_number: deviceValidation[0][0]?.success_ids },
+          },
+        );
+      }
+
+      if (deviceValidation[0][0]?.failed_ids.length) {
+        failedDevises = failedDevises.concat(
+          deviceValidation[0][0]?.failed_ids,
+        );
+      }
+    }
+
+    if (failedDevises.length) {
       return new HelperResponse({
         success: false,
-        message: errorResponses.NO_DEVICES_FOUND,
+        data: { distributionId, failedDevises },
+        message: errorResponses.FAILED_TO_UNASSIGN_DEVICES(
+          failedDevises.join(', '),
+        ),
         errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
       });
     }
 
-    await aergov_devices.update(
-      { distribution_id: null },
-      {
-        where: { mac_number: devices },
-      },
-    );
-
     return new HelperResponse({
       success: true,
-      data: { distributionId, devices },
+      data: {
+        distributionId,
+        failedDevises,
+      },
       message: successResponses.DEVICE_UNASSIGNED(distribution?.name),
     });
   } catch (err) {
@@ -245,7 +279,7 @@ exports.editDistributionHelper = async (data, id) => {
       return {
         success: false,
         errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
-        message: errorResponses.INVALID_DISTRIBUTION_ID,
+        message: errorResponses.INVALID_DISTRIBUTION,
         data: null,
       };
     }

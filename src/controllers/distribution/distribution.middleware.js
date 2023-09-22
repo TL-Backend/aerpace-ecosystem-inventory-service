@@ -53,7 +53,6 @@ exports.validateUnassignDevices = async (req, res, next) => {
   }
 };
 
-
 exports.validateDistributionInput = async (req, res, next) => {
   try {
     const {
