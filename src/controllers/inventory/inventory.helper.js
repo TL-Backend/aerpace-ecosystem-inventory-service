@@ -13,7 +13,7 @@ const { errorResponses, status, eachLimitValue, successResponses, responseFileLo
 const { levelStarting } = require('../../utils/constant');
 const { statusCodes } = require('../../utils/statusCodes');
 
-exports.extractCsv = async ({ csvFile }) => {
+exports.processCsvFile = async ({ csvFile }) => {
   let uploadResult, inputDataUrl, processStatus
   try {
     let { uploadData } = await this.createEntryOfImportHistory({ csvFile })

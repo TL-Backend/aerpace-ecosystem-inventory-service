@@ -2,12 +2,12 @@ const { logger } = require("../../utils/logger");
 const { errorResponse, successResponse } = require("../../utils/responseHandler");
 const { statusCodes } = require("../../utils/statusCodes");
 const { errorResponses } = require("./inventory.constant");
-const { extractCsv } = require("./inventory.helper");
+const { processCsvFile } = require("./inventory.helper");
 
 exports.importCsv = async (req, res, next) => {
   try {
     const csv_file = req.file
-    const { success, errorCode, message, data } = await extractCsv({ csvFile: csv_file })
+    const { success, errorCode, message, data } = await processCsvFile({ csvFile: csv_file })
     if(!success){
       return errorResponse({
         req,
