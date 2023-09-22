@@ -278,12 +278,12 @@ exports.validateAndCreateDeviceEntries = async ({ validEntries, invalidEntries, 
   try {
     let finalList = [...invalidEntries]
     let validVersionId = {}
-    await eachLimitPromise(validEntries, eachLimitValue, async obj => {
+    await this.eachLimitPromise(validEntries, eachLimitValue, async obj => {
       let errorList = []
       const { mac_address: macAddress, version_id: versionId } = obj
 
       if (!validVersionId.hasOwnProperty(versionId)) {
-        const { success: versionStatus, data } = await checkVersionValidity({ versionId })
+        const { success: versionStatus, data } = await this.checkVersionValidity({ versionId })
         if (!versionStatus) {
           obj.status = status.ERROR
           errorList.push(errorResponses.INVALID_VERSION_ID)
@@ -306,7 +306,7 @@ exports.validateAndCreateDeviceEntries = async ({ validEntries, invalidEntries, 
         }
       }
 
-      const { success: macStatus } = await checkMacAddressValidity({ macAddress })
+      const { success: macStatus } = await this.checkMacAddressValidity({ macAddress })
       if (!macStatus) {
         obj.status = status.ERROR
         errorList.push(errorResponses.INVALID_MAC_ADDRESS)
@@ -342,7 +342,7 @@ exports.validateAndCreateDeviceEntries = async ({ validEntries, invalidEntries, 
   }
 }
 
-const eachLimitPromise = function eachLimitPromise(data, limit, operator) {
+exports.eachLimitPromise = function eachLimitPromise(data, limit, operator) {
   return new Promise((resolve, reject) => {
     async.eachLimit(data, limit, (obj, callback) => {
       operator(obj).then((result) => {
@@ -356,7 +356,7 @@ const eachLimitPromise = function eachLimitPromise(data, limit, operator) {
   });
 };
 
-const checkVersionValidity = async ({ versionId }) => {
+exports.checkVersionValidity = async ({ versionId }) => {
   try {
     const data = await aergov_device_versions.findOne({
       where: {
@@ -379,14 +379,14 @@ const checkVersionValidity = async ({ versionId }) => {
   }
 }
 
-const checkMacAddressValidity = async ({ macAddress }) => {
+exports.checkMacAddressValidity = async ({ macAddress }) => {
   try {
     const data = await aergov_devices.findOne({
       where: {
         mac_number: macAddress,
       }
     })
-    if (!data) {
+    if (data) {
       return {
         success: false
       }
