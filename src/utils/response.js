@@ -1,5 +1,5 @@
 const { successResponses, errorResponses } = require('./constant');
-const { statusCodes } = require('./statusCodes');
+const { statusCodes } = require('./statusCode');
 
 class HelperResponse {
   constructor({ success, data, errorCode, message }) {
