@@ -7,7 +7,7 @@ const csv = require('csvtojson');
 const AWS = require('aws-sdk')
 const moment = require('moment')
 const fs = require('fs')
-const { getDevicesWithMacAddress, updateImportHistoryTable } = require('./inventory.query');
+const { updateImportHistoryTable } = require('./inventory.query');
 const { logger } = require('../../utils/logger');
 const { errorResponses, status, eachLimitValue, successResponses, responseFileLocation, fileExtension, momentFormat, csvFields, activityStatus, keyWords } = require('./inventory.constant');
 const { levelStarting } = require('../../utils/constant');
@@ -88,10 +88,16 @@ exports.extractCsv = async ({ csvFile }) => {
 exports.updateImportHistory = async ({ uploadData, inputPublicUrl, responsePublicUrl, status }) => {
   try {
     const currentInstance = moment().format()
-    await sequelize.query(updateImportHistoryTable, {
-      replacements: { id: uploadData ? uploadData.id : null, status, input_file: inputPublicUrl ? inputPublicUrl : null, response_file: responsePublicUrl ? responsePublicUrl : null, uploaded_at: currentInstance },
-      type: sequelize.QueryTypes.SELECT,
+    const data = await aergov_device_import_histories.findOne({
+      where: {
+        id: uploadData.id
+      }
     })
+    data.status = status
+    data.input_file = inputPublicUrl
+    data.response_file = responsePublicUrl
+    data.uploaded_at = currentInstance
+    data.save()
     return
   } catch (err) {
     logger.error(err.message);
@@ -377,11 +383,12 @@ const checkVersionValidity = async ({ versionId }) => {
 
 const checkMacAddressValidity = async ({ macAddress }) => {
   try {
-    const data = await sequelize.query(getDevicesWithMacAddress, {
-      replacements: { mac_number: macAddress },
-      type: sequelize.QueryTypes.SELECT,
+    const data = await aergov_devices.findOne({
+      where: {
+        mac_number: macAddress,
+      }
     })
-    if (data[0].exists) {
+    if (!data) {
       return {
         success: false
       }
