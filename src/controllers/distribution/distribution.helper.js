@@ -9,6 +9,7 @@ const {
   getDataById,
   getListDistributorsQuery,
   getFiltersQuery,
+  getDistributionByEmailQuery,
 } = require('./distribution.query');
 const { statusCodes } = require('../../utils/statusCode');
 const { dbTables } = require('../../utils/constant');
@@ -26,6 +27,17 @@ const USER_SERVICE_API = url.user_service;
 exports.addDistributionHelper = async (data) => {
   const transaction = await sequelize.transaction();
   try {
+    const distributionExist = await this.checkDistributionExistWithEmail(
+      data.distribution_email,
+    );
+    if (distributionExist.data || !distributionExist.success) {
+      return {
+        success: false,
+        errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
+        message: errorResponses.DISTRIBUTIONS_EXIST_WITH_THIS_EMAIL,
+        data: null,
+      };
+    }
     const distributionRole = await aergov_roles.findOne({
       where: { role_name: defaults.DEFAULT_DISTRIBUTION_ROLE_NAME },
       raw: true,
@@ -102,6 +114,29 @@ exports.addDistributionHelper = async (data) => {
   }
 };
 
+exports.checkDistributionExistWithEmail = async (email) => {
+  try {
+    const query = getDistributionByEmailQuery;
+    const data = await sequelize.query(query, {
+      replacements: { email },
+      type: sequelize.QueryTypes.SELECT,
+    });
+    return {
+      success: true,
+      message: successResponses.DATA_FETCHED,
+      data: data[0],
+    };
+  } catch (err) {
+    logger.error(err);
+    return {
+      success: false,
+      errorCode: statusCodes.STATUS_CODE_FAILURE,
+      message: errorResponses.ERROR_FOUND,
+      data: null,
+    };
+  }
+};
+
 exports.postAsyncUserCreation = async ({
   body,
   api,
@@ -156,14 +191,13 @@ exports.editDistributionHelper = async (data, id) => {
       return {
         success: false,
         errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
-        message: 'Invalid distribution_id',
+        message: errorResponses.INVALID_DISTRIBUTION_ID,
         data: null,
       };
     }
     const DistributionParams = {
       name: data.distribution_name,
       region: data.distribution_region,
-      email: data.distribution_email,
       phone_number: data.distribution_phone_number,
       address: data.distribution_address,
       country_code: data.distribution_country_code,
@@ -178,7 +212,7 @@ exports.editDistributionHelper = async (data, id) => {
     data.distribution_id = distributionData.id;
     return {
       success: true,
-      message: 'Distribution details succesfully modified',
+      message: successResponses.DISTRIBUTION_UPDATED_MESSAGE,
       data: data,
     };
   } catch (err) {
@@ -186,7 +220,7 @@ exports.editDistributionHelper = async (data, id) => {
     return {
       success: false,
       errorCode: statusCodes.STATUS_CODE_FAILURE,
-      message: 'Error while modifiying distribution details',
+      message: errorResponses.ERROR_FOUND,
       data: null,
     };
   }
@@ -214,8 +248,8 @@ exports.listDistributionsHelper = async (params) => {
         distributions: data[0],
         page_limit: parseInt(params.page_limit) || 10,
         page_number: parseInt(params.page_number) || 1,
-        total_pages: totalPages,
-        total_count: parseInt(data[0][0].data_count || 0),
+        total_pages: totalPages !== 0 ? totalPages : 1,
+        total_count: parseInt(data[0][0]?.data_count || 0),
         filters: regions.length
           ? {
               regions: regions,
@@ -229,7 +263,7 @@ exports.listDistributionsHelper = async (params) => {
     return {
       success: false,
       errorCode: statusCodes.STATUS_CODE_FAILURE,
-      message: 'Error while fetching distribution details',
+      message: errorResponses.ERROR_FOUND,
       data: null,
     };
   }
