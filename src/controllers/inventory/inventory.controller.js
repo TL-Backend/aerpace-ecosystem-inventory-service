@@ -3,7 +3,7 @@ const { logger } = require("../../utils/logger")
 const { errorResponse, successResponse } = require("../../utils/responseHandler")
 const { statusCodes } = require("../../utils/statusCode")
 const { successResponses } = require("./inventory.constant")
-const { getInventory } = require("./inventory.helper")
+const { getInventory, getInventoryImportHistory } = require("./inventory.helper")
 const messages = require('./inventory.constant');
 
 exports.listInventory = async (req, res, next) => {
@@ -60,7 +60,7 @@ exports.getImportHistoryList = async (req, res, next) => {
       data,
       req,
       res,
-      message: messages.successMessages.CSV_IMPORT_HISTORY_FETCHED_MESSAGE,
+      message: messages.successResponses.CSV_IMPORT_HISTORY_FETCHED_MESSAGE,
       code: statusCodes.STATUS_CODE_SUCCESS,
     });
   } catch (error) {
