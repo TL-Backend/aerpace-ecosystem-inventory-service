@@ -10,7 +10,7 @@ exports.importCsvMiddleware = upload.single('csv_file');
 exports.importCsvValidation = async (req, res, next) => {
   try {
     const csvData = req.file
-    if (!csvData || !csvData.originalname.endsWith(fileExtension)) {
+    if (!csvData) {
       throw errorResponses.INVALID_CSV_FILE
     }
     return next()
