@@ -7,9 +7,12 @@ const {
 const { statusCodes } = require('../../utils/statusCode');
 const messages = require('./distribution.constant');
 
-const { assignDevicesHelper, addDistributionHelper,
+const {
+  assignDevicesHelper,
+  addDistributionHelper,
   listDistributionsHelper,
-  editDistributionHelper, } = require('./distribution.helper');
+  editDistributionHelper,
+} = require('./distribution.helper');
 
 exports.assignDevices = async (req, res, next) => {
   try {
@@ -21,6 +24,7 @@ exports.assignDevices = async (req, res, next) => {
       return errorResponse({
         req,
         res,
+        data,
         code: errorCode,
         message,
       });
@@ -42,8 +46,6 @@ exports.assignDevices = async (req, res, next) => {
     });
   }
 };
-
-
 
 exports.addDistribution = async (req, res) => {
   try {
@@ -136,7 +138,7 @@ exports.listDistributions = async (req, res) => {
       req,
       res,
       code: statusCodes.STATUS_CODE_FAILURE,
-      message: err.message
+      message: err.message,
     });
   }
 };

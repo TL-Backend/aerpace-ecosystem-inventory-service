@@ -33,6 +33,8 @@ const USER_SERVICE_API = url.user_service;
 exports.assignDevicesHelper = async (params) => {
   try {
     const { distribution_id: distributionId, devices } = params;
+    let failedDevises = [];
+    let validDevices = [];
 
     const distribution = await aergov_distributions.findOne({
       where: { id: distributionId },
@@ -47,32 +49,53 @@ exports.assignDevicesHelper = async (params) => {
       });
     }
 
-    const isValidDevicesToAssign = await sequelize.query(
-      validateDevicesToAssign,
-      {
-        replacements: { devices },
-        raw: true,
-      },
-    );
+    devices?.forEach((device) => {
+      if (typeof device === 'string') {
+        validDevices.push(device);
+      }
+      if (typeof device !== 'string') {
+        failedDevises.push(device);
+      }
+    });
 
-    if (!isValidDevicesToAssign[0][0]?.result) {
+    if (validDevices.length) {
+      const deviceValidation = await sequelize.query(validateDevicesToAssign, {
+        replacements: { devices: validDevices },
+        raw: true,
+      });
+
+      if (deviceValidation[0][0]?.success_ids.length) {
+        await aergov_devices.update(
+          { distribution_id: distributionId },
+          {
+            where: { mac_number: deviceValidation[0][0]?.success_ids },
+          },
+        );
+      }
+
+      if (deviceValidation[0][0]?.failed_ids.length) {
+        failedDevises = failedDevises.concat(
+          deviceValidation[0][0]?.failed_ids,
+        );
+      }
+    }
+
+    if (failedDevises.length) {
       return new HelperResponse({
         success: false,
-        message: errorResponses.NO_DEVICES_FOUND,
+        data: { failedDevises },
+        message: errorResponses.FAILED_TO_ASSIGN_DEVICES(
+          failedDevises.join(', '),
+        ),
         errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
       });
     }
 
-    await aergov_devices.update(
-      { distribution_id: distributionId },
-      {
-        where: { mac_number: devices },
-      },
-    );
-
     return new HelperResponse({
       success: true,
-      data: { distributionId, devices },
+      data: {
+        distributionId,
+      },
       message: successResponses.DEVICE_ASSIGNED(distribution?.name),
     });
   } catch (err) {

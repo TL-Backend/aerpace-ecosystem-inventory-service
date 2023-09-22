@@ -12,19 +12,22 @@ exports.errorResponses = {
   DISTRIBUTION_NOT_FOUND: (id) => {
     return `Distribution not found with id: ${id}`;
   },
+  INVALID_STRING_OR_MISSING_ERROR: (value) => {
+    return `${value} should be present and it must be an string`;
+  },
+  INVALID_FORMAT_ERROR: (value) => {
+    return `${value} contains invalid data`;
+  },
+  FAILED_TO_ASSIGN_DEVICES: (values) => {
+    return `Unable to assign devices with Id's: ${values}`;
+  },
   NO_DEVICES_FOUND: `There are invalid device mac_addresses in the set of mac_addresses you have provided`,
   INVALID_DISTRIBUTION_ID: `Distribution Id is required, it should be of type string and should start with dr_`,
   INVALID_DEVICES: `List of devices are required`,
   EMPTY_LIST_DEVICES: `Devices cannot be empty`,
   INVALID_DEVICE_TYPE: `Devices should only contain strings`,
-  INVAILD_STRING_OR_MISSING_ERROR: (value) => {
-    return `${value} should be present and it must be an string`;
-  },
-  INVAILD_FORMAT_ERROR: (value) => {
-    return `${value} contains invalid data`;
-  },
-  INVAILD_EMAIL_FORMAT_MESSAGE: 'Invalid email format',
-  INVAILD_SEARCH_KEY: 'Invalid search key, it should be string!',
+  INVALID_EMAIL_FORMAT_MESSAGE: 'Invalid email format',
+  INVALID_SEARCH_KEY: 'Invalid search key, it should be string!',
   PAGE_LIMIT_MESSAGE: 'Page limit should be positive',
   PAGE_NUMBER_MESSAGE: 'Page number should be positive',
   INVALID_REGION_FILTER: 'Invalid region filter, it should be a string',

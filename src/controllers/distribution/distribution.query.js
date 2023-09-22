@@ -4,15 +4,21 @@ const {
 } = require('../../services/aerpace-ecosystem-backend-db/src/commons/common.query');
 
 exports.validateDevicesToAssign = `
-  WITH master_devices_count AS
-  (
-      SELECT COUNT(*) AS master_count
-      FROM ${dbTables.DEVICES_TABLE}
-      WHERE mac_number = ANY(ARRAY [:devices]) AND distribution_id is NULL
+  WITH input_ids AS (
+    SELECT unnest(ARRAY[:devices]) AS mac_number
   )
-  SELECT master_count = array_length(ARRAY [:devices], 1) AS result
-  FROM master_devices_count
-  `;
+  SELECT 
+    ARRAY(
+      SELECT mac_number
+      FROM input_ids
+      WHERE mac_number IN (SELECT mac_number FROM ${dbTables.DEVICES_TABLE} WHERE distribution_id IS NULL)
+    ) AS success_ids,
+    ARRAY(
+      SELECT mac_number
+      FROM input_ids
+      WHERE mac_number NOT IN (SELECT mac_number FROM ${dbTables.DEVICES_TABLE} WHERE distribution_id IS NULL)
+    ) AS failed_ids;
+`;
 
 exports.getListDistributorsQuery = (params) => {
   const { page_number, page_limit, search, region } = params;
