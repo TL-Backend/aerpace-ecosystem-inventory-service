@@ -87,7 +87,7 @@ exports.getInventoryImportHistory = async (params) => {
       success: true,
       data: {
         import_history: importHistory[0][0]?.import_histories,
-        total_count: importHistory[0][0]?.total_count,
+        total_count: parseInt(importHistory[0][0]?.total_count) || 0,
         page_limit: importHistory[0][0]?.page_limit,
         page_number: importHistory[0][0]?.page_number,
         total_pages: totalPages,
