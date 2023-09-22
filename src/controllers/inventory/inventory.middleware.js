@@ -6,7 +6,7 @@ const { statusCodes } = require('../../utils/statusCodes');
 let diskUpload = multer({
   storage: diskStorage,
   limits: {
-    fileSize: 10000000,
+    fileSize: 8000000,
   },
 });
 const upload = multer({ dest: 'uploads/' });
