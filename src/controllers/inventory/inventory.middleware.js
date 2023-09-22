@@ -3,6 +3,12 @@ const { errorResponses, fileExtension } = require('./inventory.constant');
 const { errorResponse } = require('../../utils/responseHandler');
 const { logger } = require('../../utils/logger');
 const { statusCodes } = require('../../utils/statusCodes');
+let diskUpload = multer({
+  storage: diskStorage,
+  limits: {
+    fileSize: 10000000,
+  },
+});
 const upload = multer({ dest: 'uploads/' });
 
 exports.importCsvMiddleware = upload.single('csv_file');

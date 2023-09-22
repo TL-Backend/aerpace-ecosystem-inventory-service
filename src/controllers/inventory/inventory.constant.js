@@ -1,5 +1,5 @@
 exports.successResponses = {
-    default: {
+  default: {
     statusCode: 200,
     message: '',
   },
@@ -26,7 +26,7 @@ exports.errorResponses = {
   IN_PROGRESS: 'Inporgress',
   PROCESS_FAILED: 'Process failed',
   DUPLICATE_DATA: 'Duplicate data',
-  DB_FAILED: 'dbFailed'
+  DB_FAILED: 'dbFailed',
 };
 
 exports.filterCondition = {
@@ -34,15 +34,15 @@ exports.filterCondition = {
   variant_name: `adva.name`,
   version_name: `adve.name`,
   distrubution_id: `ad.distribution_id`,
-  color: `ad.color`
-}
+  color: `ad.color`,
+};
 
-exports.sortOrder = `ORDER BY ad.created_at DESC`
+exports.sortOrder = `ORDER BY ad.created_at DESC`;
 
 exports.deviceStatus = {
   ASSIGNED: 'ASSIGNED',
-  UNASSIGNED: 'UNASSIGNED'
-}
+  UNASSIGNED: 'UNASSIGNED',
+};
 
 exports.status = {
   IN_PROGRESS: 'INPROGRESS',

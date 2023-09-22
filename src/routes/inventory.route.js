@@ -1,5 +1,7 @@
 const {
-  getImportHistoryList, importCsv, listInventory
+  getImportHistoryList,
+  importCsv,
+  listInventory,
 } = require('../controllers/inventory/inventory.controller');
 const {
   importCsvMiddleware,
