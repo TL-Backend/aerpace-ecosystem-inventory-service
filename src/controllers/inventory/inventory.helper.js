@@ -1,13 +1,12 @@
 const async = require('async');
 const json2csv = require('json2csv').parse
-const {
-  sequelize, aergov_devices, aergov_device_import_histories, aergov_device_versions
-} = require('../../services/aerpace-ecosystem-backend-db/src/databases/postgresql/models');
 const csv = require('csvtojson');
 const AWS = require('aws-sdk')
 const moment = require('moment')
 const fs = require('fs')
-const { updateImportHistoryTable } = require('./inventory.query');
+const {
+ aergov_devices, aergov_device_import_histories, aergov_device_versions
+} = require('../../services/aerpace-ecosystem-backend-db/src/databases/postgresql/models');
 const { logger } = require('../../utils/logger');
 const { errorResponses, status, eachLimitValue, successResponses, responseFileLocation, fileExtension, momentFormat, csvFields, activityStatus, keyWords } = require('./inventory.constant');
 const { levelStarting } = require('../../utils/constant');
@@ -34,7 +33,6 @@ exports.processCsvFile = async ({ csvFile }) => {
 
     const { responsePublicUrl } = await this.convertJsonToCsvAndUploadCsv({ finalList, csvFile })
 
-    console.log(rejectedEntries.length === jsonData.length);
     if (rejectedEntries.length === jsonData.length) {
       processStatus = status.FAILED
     }
