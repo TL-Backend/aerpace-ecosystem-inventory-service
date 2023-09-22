@@ -67,7 +67,7 @@ exports.updateImportHistory = async ({ uploadData, inputPublicUrl, responsePubli
   try {
     const currentInstance = moment().format()
     await sequelize.query(updateImportHistoryTable, {
-      replacements: { id: uploadData ? uploadData.id : null, status, input_file: inputPublicUrl ? inputPublicUrl : null, input_file_response: responsePublicUrl ? responsePublicUrl : null, uploaded_at: currentInstance },
+      replacements: { id: uploadData ? uploadData.id : null, status, input_file: inputPublicUrl ? inputPublicUrl : null, response_file: responsePublicUrl ? responsePublicUrl : null, uploaded_at: currentInstance },
       type: sequelize.QueryTypes.SELECT,
     })
     return
@@ -85,9 +85,9 @@ exports.convertJsonToCsv = async ({ finalList, csvFile }) => {
     const { publicUrl } = await uploadCsvToS3({ file: csvFile, filePath: responseFileLocation, location: process.env.RESPONSE_FILE_LOCATION })
     fs.unlink(responseFileLocation, (err) => {
       if (err) {
-        logger.error('Error deleting file:', err);
+        logger.error(err);
       } else {
-        logger.info(' response file deleted successfully');
+        logger.info(successResponses.FILE_DELETED_SUCCESSFULLY);
       }
     });
     return {
@@ -105,7 +105,7 @@ exports.createEntryOfImportHistory = async ({ csvFile }) => {
       file_name: csvFile.originalname,
       input_file: 'null',
       status: status.IN_PROGRESS,
-      response_file: 'null', 
+      response_file: 'null',
       uploaded_by: 'u_1',
     })
     return { uploadData }
@@ -246,27 +246,32 @@ const removeDuplicatedData = async ({ jsonData }) => {
 const updateDataBase = async ({ uniqueListOfObjects, invalidEntries, sourceData }) => {
   try {
     let finalList = [...invalidEntries]
-
+    let validVersionId = {}
     await eachLimitPromise(uniqueListOfObjects, eachLimitValue, async obj => {
       let errorList = []
       let deviceData
       const { mac_address: macAddress, version_id: versionId } = obj
 
-      let validVersionId = {}
       if (!validVersionId.hasOwnProperty(versionId)) {
         const { success: versionStatus, data } = await checkVersionValidity({ versionId })
         deviceData = data
         if (!versionStatus) {
           obj.status = status.ERROR
           errorList.push(errorResponses.INVALID_VERSION_ID)
-          validVersionId[versionId] = false;
+          validVersionId[versionId] = {
+            status: false,
+            data: null
+          };
         }
         else {
-          validVersionId[versionId] = true;
+          validVersionId[versionId] = {
+            status: true,
+            data: data
+          };
         }
       }
       else {
-        if (!validVersionId[versionId]) {
+        if (!validVersionId[versionId].status) {
           obj.status = status.ERROR
           errorList.push(errorResponses.INVALID_VERSION_ID)
         }
@@ -283,7 +288,7 @@ const updateDataBase = async ({ uniqueListOfObjects, invalidEntries, sourceData 
       }
 
       if (obj.status === status.IN_PROGRESS) {
-        const { success: dbUploadSuccess } = await this.uploadDeviceToDb({ obj, data: deviceData, sourceData })
+        const { success: dbUploadSuccess } = await this.uploadDeviceToDb({ obj, data: validVersionId[versionId].data, sourceData })
         if (dbUploadSuccess) {
           obj.status = status.SUCCESS
           obj.message = successResponses.PROCESS_COMPLETED

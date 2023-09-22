@@ -1,5 +1,5 @@
 exports.successResponses = {
-  PROCESS_COMPLETED: 'process completed successfully',
+  PROCESS_COMPLETED: 'Process completed successfully',
   FILE_UPLOADED_SUCCESSFULLY: 'File uploaded successfully:',
   FILE_DELETED_SUCCESSFULLY: 'File deleted successfully'
 };
