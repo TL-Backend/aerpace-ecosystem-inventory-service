@@ -19,7 +19,7 @@ class HelperResponse {
       if (!message) {
         message = errorResponses.FAILURE;
       }
-      data = null;
+      data = data || null;
       this.errorCode = errorCode;
     }
 

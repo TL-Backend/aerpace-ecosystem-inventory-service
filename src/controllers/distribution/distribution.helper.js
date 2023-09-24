@@ -1,28 +1,118 @@
+const { logger } = require('../../utils/logger');
+const { HelperResponse } = require('../../utils/response');
 const {
-  aergov_users,
   sequelize,
+  aergov_devices,
   aergov_distributions,
+  aergov_users,
   aergov_roles,
 } = require('../../services/aerpace-ecosystem-backend-db/src/databases/postgresql/models');
-const { logger } = require('../../utils/logger');
 const {
+  validateDevicesToUnassign,
   getDataById,
   getListDistributorsQuery,
   getFiltersQuery,
   getDistributionByEmailQuery,
 } = require('./distribution.query');
-const { statusCodes } = require('../../utils/statusCode');
-const { dbTables } = require('../../utils/constant');
-const { postAsync } = require('../../utils/request');
 const {
   defaults,
   successResponses,
   errorResponses,
   routes,
 } = require('./distribution.constant');
+const { statusCodes } = require('../../utils/statusCode');
+const { dbTables } = require('../../utils/constant');
+const { postAsync } = require('../../utils/request');
 const { QueryTypes } = require('sequelize');
 const { url } = require('../../../config').getConfig();
 const USER_SERVICE_API = url.user_service;
+
+exports.unassignDevicesHelper = async (params) => {
+  try {
+    const { distribution_id: distributionId, devices } = params;
+    let failedDevises = [];
+    let validDevices = [];
+
+    const distribution = await aergov_distributions.findOne({
+      where: { id: distributionId },
+      raw: true,
+    });
+
+    if (!distribution) {
+      return new HelperResponse({
+        success: false,
+        message: errorResponses.DISTRIBUTION_NOT_FOUND(distributionId),
+        errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
+      });
+    }
+
+    devices?.forEach((device) => {
+      if (typeof device !== 'string') {
+        failedDevises.push(device);
+        return;
+      }
+      validDevices.push(device);
+    });
+
+    if (validDevices.length) {
+      console.log(validDevices, distributionId);
+
+      const deviceValidation = await sequelize.query(
+        validateDevicesToUnassign,
+        {
+          replacements: {
+            devices: validDevices,
+            distribution_id: distributionId,
+          },
+          raw: true,
+        },
+      );
+
+      console.log(deviceValidation[0][0]);
+
+      if (deviceValidation[0][0]?.success_ids.length) {
+        await aergov_devices.update(
+          { distribution_id: null },
+          {
+            where: { mac_number: deviceValidation[0][0]?.success_ids },
+          },
+        );
+      }
+
+      if (deviceValidation[0][0]?.failed_ids.length) {
+        failedDevises = failedDevises.concat(
+          deviceValidation[0][0]?.failed_ids,
+        );
+      }
+    }
+
+    if (failedDevises.length) {
+      return new HelperResponse({
+        success: false,
+        data: {
+          distribution_id: distributionId,
+          failed_devises: failedDevises,
+        },
+        message: errorResponses.FAILED_TO_UNASSIGN_DEVICES(
+          failedDevises.join(', '),
+        ),
+        errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
+      });
+    }
+
+    return new HelperResponse({
+      success: true,
+      data: {
+        distribution_id: distributionId,
+        failed_devises: failedDevises,
+      },
+      message: successResponses.DEVICE_UNASSIGNED(distribution?.name),
+    });
+  } catch (err) {
+    logger.error(err);
+    return new HelperResponse({ success: false, message: err.message });
+  }
+};
 
 exports.addDistributionHelper = async (data) => {
   const transaction = await sequelize.transaction();
@@ -191,7 +281,7 @@ exports.editDistributionHelper = async (data, id) => {
       return {
         success: false,
         errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
-        message: errorResponses.INVALID_DISTRIBUTION_ID,
+        message: errorResponses.INVALID_DISTRIBUTION,
         data: null,
       };
     }

@@ -1,15 +1,50 @@
+const { logger } = require('../../utils/logger');
 const {
   errorResponse,
   successResponse,
 } = require('../../utils/responseHandler');
+
 const { statusCodes } = require('../../utils/statusCode');
-const { logger } = require('../../utils/logger');
+const messages = require('./distribution.constant');
 const {
+  unassignDevicesHelper,
   addDistributionHelper,
   listDistributionsHelper,
   editDistributionHelper,
 } = require('./distribution.helper');
-const messages = require('./distribution.constant');
+
+exports.unassignDevices = async (req, res, next) => {
+  try {
+    const { success, data, message, errorCode } = await unassignDevicesHelper(
+      req.body,
+    );
+
+    if (!success) {
+      return errorResponse({
+        req,
+        res,
+        data,
+        code: errorCode,
+        message,
+      });
+    }
+
+    return successResponse({
+      req,
+      res,
+      data,
+      message,
+    });
+  } catch (err) {
+    logger.error(err.message);
+    return errorResponse({
+      req,
+      res,
+      code: statusCodes.STATUS_CODE_FAILURE,
+      message: err.message,
+    });
+  }
+};
 
 exports.addDistribution = async (req, res) => {
   try {
@@ -102,6 +137,7 @@ exports.listDistributions = async (req, res) => {
       req,
       res,
       code: statusCodes.STATUS_CODE_FAILURE,
+      message: err.message,
     });
   }
 };
