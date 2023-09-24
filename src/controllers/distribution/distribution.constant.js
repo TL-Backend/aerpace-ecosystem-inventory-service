@@ -2,6 +2,9 @@ exports.successResponses = {
   DEVICE_ASSIGNED: (name) => {
     return `Devices Assigned to distribution ${name}`;
   },
+  DEVICE_UNASSIGNED: (name) => {
+    return `Devices unassigned to distribution ${name} successfully`;
+  },
   DISTRIBUTION_ADDED_MESSAGE: 'Distribution created successfully',
   DISTRIBUTION_UPDATED_MESSAGE: 'Distribution updated successfully',
   DISTRIBUTIONS_FETCHED_MESSAGE: 'Distributions fetched successfully',
@@ -20,6 +23,9 @@ exports.errorResponses = {
   },
   FAILED_TO_ASSIGN_DEVICES: (values) => {
     return `Unable to assign devices with Id's: ${values}`;
+  },
+  FAILED_TO_UNASSIGN_DEVICES: (values) => {
+    return `Unable to unassign devices with Id's: ${values}`;
   },
   NO_DEVICES_FOUND: `There are invalid device mac_addresses in the set of mac_addresses you have provided`,
   INVALID_DISTRIBUTION_ID: `Distribution Id is required, it should be of type string and should start with dr_`,
