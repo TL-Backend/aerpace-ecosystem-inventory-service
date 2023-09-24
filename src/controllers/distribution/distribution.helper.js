@@ -89,7 +89,10 @@ exports.unassignDevicesHelper = async (params) => {
     if (failedDevises.length) {
       return new HelperResponse({
         success: false,
-        data: { distributionId, failedDevises },
+        data: {
+          distribution_id: distributionId,
+          failed_devises: failedDevises,
+        },
         message: errorResponses.FAILED_TO_UNASSIGN_DEVICES(
           failedDevises.join(', '),
         ),
@@ -100,8 +103,8 @@ exports.unassignDevicesHelper = async (params) => {
     return new HelperResponse({
       success: true,
       data: {
-        distributionId,
-        failedDevises,
+        distribution_id: distributionId,
+        failed_devises: failedDevises,
       },
       message: successResponses.DEVICE_UNASSIGNED(distribution?.name),
     });
