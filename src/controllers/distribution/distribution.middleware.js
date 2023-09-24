@@ -8,7 +8,6 @@ exports.validateUnassignDevices = async (req, res, next) => {
   try {
     const { distribution_id: distributionId, devices } = req.body;
     let errorList = [];
-    let errorsInDevices = [];
 
     if (
       !distributionId ||
@@ -26,15 +25,6 @@ exports.validateUnassignDevices = async (req, res, next) => {
       if (!devices.length) {
         errorList.push(errorResponses.EMPTY_LIST_DEVICES);
       }
-      devices?.forEach((device) => {
-        if (typeof device !== 'string') {
-          errorsInDevices.push(errorResponses.INVALID_DEVICE_TYPE);
-        }
-      });
-    }
-
-    if (errorsInDevices.length) {
-      errorList.push(...new Set(errorsInDevices));
     }
 
     if (errorList.length) {
