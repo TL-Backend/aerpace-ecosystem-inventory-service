@@ -8,7 +8,6 @@ exports.validateAssignDevices = async (req, res, next) => {
   try {
     const { distribution_id: distributionId, devices } = req.body;
     let errorList = [];
-    let errorsInDevices = [];
 
     if (
       !distributionId ||
@@ -26,10 +25,6 @@ exports.validateAssignDevices = async (req, res, next) => {
       if (!devices.length) {
         errorList.push(errorResponses.EMPTY_LIST_DEVICES);
       }
-    }
-
-    if (errorsInDevices.length) {
-      errorList.push(...new Set(errorsInDevices));
     }
 
     if (errorList.length) {

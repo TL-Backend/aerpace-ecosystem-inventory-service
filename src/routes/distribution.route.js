@@ -13,10 +13,10 @@ const {
 
 module.exports = function (app) {
   app.post('/distribution/assign', validateAssignDevices, assignDevices);
-  app.post('/distributions', validateDistributionInput, addDistribution);
-  app.get('/distributions', validateListDistributionInput, listDistributions);
+  app.post('/distribution', validateDistributionInput, addDistribution);
+  app.get('/distribution', validateListDistributionInput, listDistributions);
   app.patch(
-    '/distributions/:id',
+    '/distribution/:id',
     validateEditDistributionInput,
     editDistribution,
   );

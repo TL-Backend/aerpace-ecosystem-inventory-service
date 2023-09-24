@@ -50,12 +50,11 @@ exports.assignDevicesHelper = async (params) => {
     }
 
     devices?.forEach((device) => {
-      if (typeof device === 'string') {
-        validDevices.push(device);
-      }
       if (typeof device !== 'string') {
         failedDevises.push(device);
+        return;
       }
+      validDevices.push(device);
     });
 
     if (validDevices.length) {
