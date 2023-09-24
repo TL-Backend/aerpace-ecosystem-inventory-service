@@ -82,7 +82,10 @@ exports.assignDevicesHelper = async (params) => {
     if (failedDevises.length) {
       return new HelperResponse({
         success: false,
-        data: { failedDevises },
+        data: {
+          distribution_id: distributionId,
+          failed_devises: failedDevises,
+        },
         message: errorResponses.FAILED_TO_ASSIGN_DEVICES(
           failedDevises.join(', '),
         ),
@@ -93,7 +96,8 @@ exports.assignDevicesHelper = async (params) => {
     return new HelperResponse({
       success: true,
       data: {
-        distributionId,
+        distribution_id: distributionId,
+        failed_devises: failedDevises,
       },
       message: successResponses.DEVICE_ASSIGNED(distribution?.name),
     });
