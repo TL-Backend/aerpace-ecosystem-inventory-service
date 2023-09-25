@@ -250,8 +250,14 @@ exports.updateImportHistory = async ({
 exports.convertJsonToCsvAndUploadCsv = async ({ finalList, csvFile }) => {
   try {
     finalList.sort((a, b) => a.sequence - b.sequence);
+    const modifiedFinalList = finalList.map(obj => {
+      return {
+        ...obj,
+        'mac address': obj['mac_address'] // Rename the attribute
+      };
+    });
     const fields = csvFields;
-    const csv = json2csv(finalList, { fields });
+    const csv = json2csv(modifiedFinalList, { fields });
     fs.writeFileSync(responseFileLocation, csv, 'utf-8');
     const { publicUrl } = await this.uploadCsvToS3({
       file: csvFile,
