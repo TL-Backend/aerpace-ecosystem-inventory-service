@@ -136,7 +136,7 @@ exports.getInventoryImportHistory = async (params) => {
 };
 
 exports.processCsvFile = async ({ csvFile }) => {
-  let uploadResult, inputDataUrl, processStatus, statusCode;
+  let uploadResult, inputDataUrl, reponseDataUrl, processStatus, statusCode;
   try {
     let { uploadData } = await this.createEntryOfImportHistory({ csvFile });
     uploadResult = uploadData;
@@ -171,7 +171,7 @@ exports.processCsvFile = async ({ csvFile }) => {
       finalList,
       csvFile,
     });
-
+    reponseDataUrl = responsePublicUrl
     if (rejectedEntries.length === jsonData.length) {
       processStatus = status.FAILED;
       statusCode = statusCodes.STATUS_CODE_INVALID_FORMAT
@@ -204,12 +204,14 @@ exports.processCsvFile = async ({ csvFile }) => {
       inputPublicUrl: inputDataUrl,
       status: processStatus,
     });
-    if (processStatus === status.PATIALLY_COMPLETED) {
+    if (processStatus === status.PATIALLY_COMPLETED || processStatus === status.FAILED) {
       return {
         success: false,
-        errorCode: statusCodes.STATUS_CODE_FAILURE,
+        errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
         message: `${keyWords.process} ${processStatus}`,
-        data: null,
+        data: {
+          response_file_url: reponseDataUrl,
+        },
       };
     }
     return {
