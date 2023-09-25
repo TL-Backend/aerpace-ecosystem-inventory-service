@@ -3,6 +3,23 @@ const {
   getPaginationQuery,
 } = require('../../services/aerpace-ecosystem-backend-db/src/commons/common.query');
 
+exports.validateDevicesToAssign = `
+  WITH input_ids AS (
+    SELECT unnest(ARRAY[:devices]) AS mac_number
+  )
+  SELECT 
+    ARRAY(
+      SELECT mac_number
+      FROM input_ids
+      WHERE mac_number IN (SELECT mac_number FROM ${dbTables.DEVICES_TABLE} WHERE distribution_id IS NULL)
+    ) AS success_ids,
+    ARRAY(
+      SELECT mac_number
+      FROM input_ids
+      WHERE mac_number NOT IN (SELECT mac_number FROM ${dbTables.DEVICES_TABLE} WHERE distribution_id IS NULL)
+    ) AS failed_ids;
+`;
+
 exports.validateDevicesToUnassign = `
   WITH input_ids AS (
     SELECT unnest(ARRAY[:devices]) AS mac_number
@@ -66,6 +83,7 @@ exports.getListDistributorsQuery = (params) => {
 };
 
 exports.getFiltersQuery = `SELECT DISTINCT region FROM ${dbTables.DISTRIBUTIONS_TABLE}`;
+
 exports.getDataById = (table) => {
   return `SELECT *
     FROM ${table}

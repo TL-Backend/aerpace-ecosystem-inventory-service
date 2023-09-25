@@ -1,4 +1,7 @@
 exports.successResponses = {
+  DEVICE_ASSIGNED: (name) => {
+    return `Devices Assigned to distribution ${name}`;
+  },
   DEVICE_UNASSIGNED: (name) => {
     return `Devices unassigned to distribution ${name} successfully`;
   },
@@ -17,6 +20,9 @@ exports.errorResponses = {
   },
   INVALID_FORMAT_ERROR: (value) => {
     return `${value} contains invalid data`;
+  },
+  FAILED_TO_ASSIGN_DEVICES: (values) => {
+    return `Unable to assign devices with Id's: ${values}`;
   },
   FAILED_TO_UNASSIGN_DEVICES: (values) => {
     return `Unable to unassign devices with Id's: ${values}`;

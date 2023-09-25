@@ -2,7 +2,7 @@ const multer = require('multer');
 const { errorResponses, fileExtension } = require('./inventory.constant');
 const { errorResponse } = require('../../utils/responseHandler');
 const { logger } = require('../../utils/logger');
-const { statusCodes } = require('../../utils/statusCodes');
+const { statusCodes } = require('../../utils/statusCode');
 const upload = multer({
   dest: 'uploads/', limits: {
     fileSize: 8000000,

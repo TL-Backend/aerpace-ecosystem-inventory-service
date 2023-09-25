@@ -27,7 +27,6 @@ const {
   activityStatus,
   keyWords,
   filterCondition,
-  successResponses,
   deviceStatus,
   sortOrder,
 } = require('./inventory.constant');
