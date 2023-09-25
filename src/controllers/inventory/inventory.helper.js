@@ -373,32 +373,6 @@ exports.validateUniqueEntries = async ({
 }) => {
   try {
     const macAddressRegex = /^([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})$/;
-    // uniqueListOfObjects.forEach(entry => {
-    //   const object = entry;
-    //   // console.log(entry);
-    //   const errorList = [];
-    //   if (!object.mac_address || !macAddressRegex.test(object.mac_address)) {
-    //     object.status = status.ERROR;
-    //     errorList.push(errorResponses.INVALID_MAC_ADDRESS);
-    //   }
-    //   if (
-    //     !object.version_id ||
-    //     !object.version_id.startsWith(levelStarting.version)
-    //   ) {
-    //     object.status = status.ERROR;
-    //     errorList.push(errorResponses.INVALID_VERSION_ID);
-    //   }
-    //   if (!object.color || typeof object.color !== 'string') {
-    //     object.status = status.ERROR;
-    //     errorList.push(errorResponses.INVALID_COLOR);
-    //   }
-    //   if (errorList.length) {
-    //     object.message = errorList.join(', ');
-    //     uniqueListOfObjects.splice(entry, 1);
-    //     duplicateListOfObjects.push(object);
-    //   }
-    // });
-
     for (let entry = uniqueListOfObjects.length - 1; entry >= 0; entry--) {
       const object = uniqueListOfObjects[entry];
       const errorList = [];
