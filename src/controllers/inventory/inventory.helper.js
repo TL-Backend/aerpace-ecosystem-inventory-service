@@ -23,7 +23,7 @@ const {
   responseFileLocation,
   fileExtension,
   momentFormat,
-  csvFields,
+  csvMandatoryHeaders,
   activityStatus,
   keyWords,
   filterCondition,
@@ -237,10 +237,12 @@ exports.csvFileAndHeaderValidation = async ({ csvFile }) => {
     }
     const data = fs.readFileSync(csvFile.path, 'utf8');
     const lines = data.split('\n');
-    const headers = lines[0].split(',');
-    if (lines?.length > 0 && !headers.includes(csvHeaders.mac_address) && !headers.includes(csvHeaders.version_id) && !headers.includes(csvHeaders.color)) {
-      throw errorResponses.INVALID_CSV_HEADERS;
-    }
+    const csvHeaders = lines[0].split(',');
+    csvHeaders.forEach(headerField => {
+      if (!csvMandatoryHeaders.includes(headerField)) {
+        throw errorResponses.INVALID_CSV_HEADERS;
+      }
+    });
     return {
       success: true,
     }
@@ -288,7 +290,7 @@ exports.convertJsonToCsvAndUploadCsv = async ({ finalList, csvFile }) => {
         'version id': obj['version_id'] // Rename the attribute
       };
     });
-    const fields = csvFields;
+    const fields = csvMandatoryHeaders;
     const csv = json2csv(modifiedFinalList, { fields });
     fs.writeFileSync(responseFileLocation, csv, 'utf-8');
     const { publicUrl } = await this.uploadCsvToS3({
