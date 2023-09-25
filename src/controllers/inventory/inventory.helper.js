@@ -253,7 +253,8 @@ exports.convertJsonToCsvAndUploadCsv = async ({ finalList, csvFile }) => {
     const modifiedFinalList = finalList.map(obj => {
       return {
         ...obj,
-        'mac address': obj['mac_address'] // Rename the attribute
+        'mac address': obj['mac_address'],
+        'version id': obj['version_id'] // Rename the attribute
       };
     });
     const fields = csvFields;
