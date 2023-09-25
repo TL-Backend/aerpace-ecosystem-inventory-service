@@ -29,6 +29,7 @@ const {
   filterCondition,
   deviceStatus,
   sortOrder,
+  csvHeaders,
 } = require('./inventory.constant');
 const { levelStarting } = require('../../utils/constant');
 
@@ -141,8 +142,14 @@ exports.processCsvFile = async ({ csvFile }) => {
     let { uploadData } = await this.createEntryOfImportHistory({ csvFile });
     uploadResult = uploadData;
 
-    if (!csvFile.originalname.endsWith(fileExtension)) {
-      throw errorResponses.INVALID_CSV_FORMAT;
+    const { success: fileValidationStatus, message: fileValidationMessage } = await this.csvFileAndHeaderValidation({ csvFile })
+    if (!fileValidationStatus) {
+      return {
+        success: false,
+        errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
+        message: fileValidationMessage,
+        data: null,
+      };
     }
 
     const { publicUrl } = await this.uploadCsvToS3({
@@ -222,6 +229,30 @@ exports.processCsvFile = async ({ csvFile }) => {
     };
   }
 };
+
+exports.csvFileAndHeaderValidation = async ({ csvFile }) => {
+  try {
+    if (!csvFile.originalname.endsWith(fileExtension)) {
+      throw errorResponses.INVALID_CSV_FORMAT
+    }
+    const data = fs.readFileSync(csvFile.path, 'utf8');
+    const lines = data.split('\n');
+    const headers = lines[0].split(',');
+    if (lines?.length > 0 && !headers.includes(csvHeaders.mac_address) && !headers.includes(csvHeaders.version_id) && !headers.includes(csvHeaders.color)) {
+      throw errorResponses.INVALID_CSV_HEADERS;
+    }
+    return {
+      success: true,
+    }
+
+  } catch (err) {
+    logger.error(err)
+    return {
+      success: false,
+      message: err
+    }
+  }
+}
 
 exports.updateImportHistory = async ({
   uploadData,
