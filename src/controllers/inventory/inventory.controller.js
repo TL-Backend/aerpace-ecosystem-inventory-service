@@ -102,6 +102,7 @@ exports.importCsv = async (req, res, next) => {
     }
     return successResponse({
       res,
+      code: errorCode,
       data,
       message,
     });
