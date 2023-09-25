@@ -57,7 +57,7 @@ exports.keyWords = {
   process: `process`,
 };
 
-exports.csvFields = ['mac_address', 'version_id', 'color', 'status', 'message'];
+exports.csvFields = ['mac address', 'version id', 'color', 'status', 'message'];
 
 exports.eachLimitValue = 10;
 

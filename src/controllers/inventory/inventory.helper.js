@@ -136,7 +136,7 @@ exports.getInventoryImportHistory = async (params) => {
 };
 
 exports.processCsvFile = async ({ csvFile }) => {
-  let uploadResult, inputDataUrl, processStatus, statusCode;
+  let uploadResult, inputDataUrl, reponseDataUrl, processStatus, statusCode;
   try {
     let { uploadData } = await this.createEntryOfImportHistory({ csvFile });
     uploadResult = uploadData;
@@ -171,7 +171,7 @@ exports.processCsvFile = async ({ csvFile }) => {
       finalList,
       csvFile,
     });
-
+    reponseDataUrl = responsePublicUrl
     if (rejectedEntries.length === jsonData.length) {
       processStatus = status.FAILED;
       statusCode = statusCodes.STATUS_CODE_INVALID_FORMAT
@@ -204,12 +204,14 @@ exports.processCsvFile = async ({ csvFile }) => {
       inputPublicUrl: inputDataUrl,
       status: processStatus,
     });
-    if (processStatus === status.PATIALLY_COMPLETED) {
+    if (processStatus === status.PATIALLY_COMPLETED || processStatus === status.FAILED) {
       return {
         success: false,
-        errorCode: statusCodes.STATUS_CODE_FAILURE,
+        errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
         message: `${keyWords.process} ${processStatus}`,
-        data: null,
+        data: {
+          response_file_url: reponseDataUrl,
+        },
       };
     }
     return {
@@ -248,8 +250,15 @@ exports.updateImportHistory = async ({
 exports.convertJsonToCsvAndUploadCsv = async ({ finalList, csvFile }) => {
   try {
     finalList.sort((a, b) => a.sequence - b.sequence);
+    const modifiedFinalList = finalList.map(obj => {
+      return {
+        ...obj,
+        'mac address': obj['mac_address'],
+        'version id': obj['version_id'] // Rename the attribute
+      };
+    });
     const fields = csvFields;
-    const csv = json2csv(finalList, { fields });
+    const csv = json2csv(modifiedFinalList, { fields });
     fs.writeFileSync(responseFileLocation, csv, 'utf-8');
     const { publicUrl } = await this.uploadCsvToS3({
       file: csvFile,
