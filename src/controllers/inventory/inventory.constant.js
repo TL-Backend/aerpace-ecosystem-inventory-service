@@ -20,6 +20,7 @@ exports.errorResponses = {
   INVALID_CSV_FILE: 'Invalid csv file or No file uploaded',
   INVALID_CSV_FORMAT: 'Invalid csv format',
   INVALID_MAC_ADDRESS: 'Invalid mac address',
+  INVALID_CSV_HEADERS: 'Invalid csv headers',
   INVALID_VERSION_ID: 'Invalid version id',
   INVALID_COLOR: 'Invalid color or color is empty',
   INTERNAL_ERROR: 'Internal error',
@@ -57,7 +58,7 @@ exports.keyWords = {
   process: `process`,
 };
 
-exports.csvFields = ['mac address', 'version id', 'color', 'status', 'message'];
+exports.csvMandatoryHeaders = ['mac address', 'version id', 'color', 'status', 'message'];
 
 exports.eachLimitValue = 10;
 

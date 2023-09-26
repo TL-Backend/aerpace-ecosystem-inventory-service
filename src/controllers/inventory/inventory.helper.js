@@ -23,12 +23,13 @@ const {
   responseFileLocation,
   fileExtension,
   momentFormat,
-  csvFields,
+  csvMandatoryHeaders,
   activityStatus,
   keyWords,
   filterCondition,
   deviceStatus,
   sortOrder,
+  csvHeaders,
 } = require('./inventory.constant');
 const { levelStarting } = require('../../utils/constant');
 
@@ -141,8 +142,14 @@ exports.processCsvFile = async ({ csvFile }) => {
     let { uploadData } = await this.createEntryOfImportHistory({ csvFile });
     uploadResult = uploadData;
 
-    if (!csvFile.originalname.endsWith(fileExtension)) {
-      throw errorResponses.INVALID_CSV_FORMAT;
+    const { success: fileValidationStatus, message: fileValidationMessage } = await this.csvFileAndHeaderValidation({ csvFile })
+    if (!fileValidationStatus) {
+      return {
+        success: false,
+        errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
+        message: fileValidationMessage,
+        data: null,
+      };
     }
 
     const { publicUrl } = await this.uploadCsvToS3({
@@ -223,6 +230,32 @@ exports.processCsvFile = async ({ csvFile }) => {
   }
 };
 
+exports.csvFileAndHeaderValidation = async ({ csvFile }) => {
+  try {
+    if (!csvFile.originalname.endsWith(fileExtension)) {
+      throw errorResponses.INVALID_CSV_FORMAT
+    }
+    const data = fs.readFileSync(csvFile.path, 'utf8');
+    const lines = data.split('\n');
+    const csvHeaders = lines[0].split(',');
+    csvHeaders.forEach(headerField => {
+      if (!csvMandatoryHeaders.includes(headerField)) {
+        throw errorResponses.INVALID_CSV_HEADERS;
+      }
+    });
+    return {
+      success: true,
+    }
+
+  } catch (err) {
+    logger.error(err)
+    return {
+      success: false,
+      message: err
+    }
+  }
+}
+
 exports.updateImportHistory = async ({
   uploadData,
   inputPublicUrl,
@@ -257,7 +290,7 @@ exports.convertJsonToCsvAndUploadCsv = async ({ finalList, csvFile }) => {
         'version id': obj['version_id'] // Rename the attribute
       };
     });
-    const fields = csvFields;
+    const fields = csvMandatoryHeaders;
     const csv = json2csv(modifiedFinalList, { fields });
     fs.writeFileSync(responseFileLocation, csv, 'utf-8');
     const { publicUrl } = await this.uploadCsvToS3({
