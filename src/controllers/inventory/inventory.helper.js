@@ -32,6 +32,7 @@ const {
   csvHeaders,
 } = require('./inventory.constant');
 const { levelStarting } = require('../../utils/constant');
+const { defaultValues } = require('../../services/aerpace-ecosystem-backend-db/src/commons/constant');
 
 exports.getInventory = async ({ params, paginationQuery }) => {
   try {
@@ -105,8 +106,8 @@ exports.getInventoryImportHistory = async (params) => {
     const importHistory = await sequelize.query(
       getImportHistoryQuery(
         {
-          pageLimit: parseInt(params.query.page_limit),
-          pageNumber: parseInt(params.query.page_number),
+          pageLimit: parseInt(params.query.page_limit) || defaultValues.DEFAULT_PAGE_LIMIT,
+          pageNumber: parseInt(params.query.page_number) || defaultValues.DEFAULT_PAGE_NUMBER,
         },
         {
           type: sequelize.QueryTypes.SELECT,
