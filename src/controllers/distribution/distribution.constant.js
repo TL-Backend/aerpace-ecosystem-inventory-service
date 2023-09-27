@@ -50,7 +50,7 @@ exports.defaults = {
 };
 
 exports.routes = {
-  POST_USERS: `api/v1/users`,
+  POST_USERS: `/users`,
 };
 
 exports.prefixes = {

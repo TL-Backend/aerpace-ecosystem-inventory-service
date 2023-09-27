@@ -58,7 +58,13 @@ exports.keyWords = {
   process: `process`,
 };
 
-exports.csvMandatoryHeaders = ['mac address', 'version id', 'color', 'status', 'message'];
+exports.csvMandatoryHeaders = [
+  'mac address',
+  'version id',
+  'color',
+  'status',
+  'message',
+];
 
 exports.eachLimitValue = 10;
 

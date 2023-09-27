@@ -24,8 +24,8 @@ const {
 } = require('./distribution.constant');
 const { dbTables } = require('../../utils/constant');
 const { postAsync } = require('../../utils/request');
-const { url } = require('../../../config').getConfig();
-const USER_SERVICE_API = url.user_service;
+
+const USER_SERVICE_API = process.env.USERS_URL;
 
 exports.assignDevicesHelper = async (params) => {
   try {
