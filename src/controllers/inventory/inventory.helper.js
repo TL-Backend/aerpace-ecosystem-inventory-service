@@ -29,7 +29,8 @@ const {
   filterCondition,
   deviceStatus,
   sortOrder,
-  csvHeaders,
+  csvInputExcludedHeaders,
+  csvResponseHeaders,
 } = require('./inventory.constant');
 const { levelStarting } = require('../../utils/constant');
 
@@ -142,7 +143,8 @@ exports.processCsvFile = async ({ csvFile }) => {
     let { uploadData } = await this.createEntryOfImportHistory({ csvFile });
     uploadResult = uploadData;
 
-    const { success: fileValidationStatus, message: fileValidationMessage } = await this.csvFileAndHeaderValidation({ csvFile })
+    const { success: fileValidationStatus, message: fileValidationMessage } =
+      await this.csvFileAndHeaderValidation({ csvFile });
     if (!fileValidationStatus) {
       return {
         success: false,
@@ -178,16 +180,16 @@ exports.processCsvFile = async ({ csvFile }) => {
       finalList,
       csvFile,
     });
-    reponseDataUrl = responsePublicUrl
+    reponseDataUrl = responsePublicUrl;
     if (rejectedEntries.length === jsonData.length) {
       processStatus = status.FAILED;
-      statusCode = statusCodes.STATUS_CODE_INVALID_FORMAT
+      statusCode = statusCodes.STATUS_CODE_INVALID_FORMAT;
     } else if (rejectedEntries.length === 0) {
       processStatus = status.COMPLETED;
-      statusCode = statusCodes.STATUS_CODE_SUCCESS
+      statusCode = statusCodes.STATUS_CODE_SUCCESS;
     } else {
       processStatus = status.PATIALLY_COMPLETED;
-      statusCode = statusCodes.STATUS_CODE_INVALID_FORMAT
+      statusCode = statusCodes.STATUS_CODE_INVALID_FORMAT;
     }
 
     await this.updateImportHistory({
@@ -211,7 +213,10 @@ exports.processCsvFile = async ({ csvFile }) => {
       inputPublicUrl: inputDataUrl,
       status: processStatus,
     });
-    if (processStatus === status.PATIALLY_COMPLETED || processStatus === status.FAILED) {
+    if (
+      processStatus === status.PATIALLY_COMPLETED ||
+      processStatus === status.FAILED
+    ) {
       return {
         success: false,
         errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
@@ -233,28 +238,28 @@ exports.processCsvFile = async ({ csvFile }) => {
 exports.csvFileAndHeaderValidation = async ({ csvFile }) => {
   try {
     if (!csvFile.originalname.endsWith(fileExtension)) {
-      throw errorResponses.INVALID_CSV_FORMAT
+      throw errorResponses.INVALID_CSV_FORMAT;
     }
     const data = fs.readFileSync(csvFile.path, 'utf8');
     const lines = data.split('\n');
     const csvHeaders = lines[0].split(',');
-    csvHeaders.forEach(headerField => {
-      if (!csvMandatoryHeaders.includes(headerField)) {
+    csvHeaders.forEach((headerField) => {
+      headerField = headerField.replace(/"/g, '').trim();
+      if (!csvMandatoryHeaders.includes(headerField) && !csvInputExcludedHeaders.includes(headerField)) {
         throw errorResponses.INVALID_CSV_HEADERS;
       }
     });
     return {
       success: true,
-    }
-
+    };
   } catch (err) {
-    logger.error(err)
+    logger.error(err);
     return {
       success: false,
-      message: err
-    }
+      message: err,
+    };
   }
-}
+};
 
 exports.updateImportHistory = async ({
   uploadData,
@@ -283,14 +288,14 @@ exports.updateImportHistory = async ({
 exports.convertJsonToCsvAndUploadCsv = async ({ finalList, csvFile }) => {
   try {
     finalList.sort((a, b) => a.sequence - b.sequence);
-    const modifiedFinalList = finalList.map(obj => {
+    const modifiedFinalList = finalList.map((obj) => {
       return {
         ...obj,
         'mac address': obj['mac_address'],
-        'version id': obj['version_id'] // Rename the attribute
+        'version id': obj['version_id'],
       };
     });
-    const fields = csvMandatoryHeaders;
+    const fields = csvResponseHeaders;
     const csv = json2csv(modifiedFinalList, { fields });
     fs.writeFileSync(responseFileLocation, csv, 'utf-8');
     const { publicUrl } = await this.uploadCsvToS3({
