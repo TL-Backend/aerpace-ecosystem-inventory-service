@@ -15,7 +15,6 @@ const csv = require('csvtojson');
 const AWS = require('aws-sdk');
 const moment = require('moment');
 const fs = require('fs');
-const rimraf = require('rimraf');
 const {
   errorResponses,
   status,
