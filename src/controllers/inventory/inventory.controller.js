@@ -89,8 +89,10 @@ exports.getImportHistoryList = async (req, res, next) => {
 exports.importCsv = async (req, res, next) => {
   try {
     const csv_file = req.file;
+    const { userId } = req.query;
     const { success, errorCode, message, data } = await processCsvFile({
       csvFile: csv_file,
+      userId,
     });
     if (!success) {
       return errorResponse({

@@ -33,7 +33,9 @@ const {
   csvResponseHeaders,
 } = require('./inventory.constant');
 const { levelStarting } = require('../../utils/constant');
-const { defaultValues } = require('../../services/aerpace-ecosystem-backend-db/src/commons/constant');
+const {
+  defaultValues,
+} = require('../../services/aerpace-ecosystem-backend-db/src/commons/constant');
 
 exports.getInventory = async ({ params, paginationQuery }) => {
   try {
@@ -107,8 +109,12 @@ exports.getInventoryImportHistory = async (params) => {
     const importHistory = await sequelize.query(
       getImportHistoryQuery(
         {
-          pageLimit: parseInt(params.query.page_limit) || defaultValues.DEFAULT_PAGE_LIMIT,
-          pageNumber: parseInt(params.query.page_number) || defaultValues.DEFAULT_PAGE_NUMBER,
+          pageLimit:
+            parseInt(params.query.page_limit) ||
+            defaultValues.DEFAULT_PAGE_LIMIT,
+          pageNumber:
+            parseInt(params.query.page_number) ||
+            defaultValues.DEFAULT_PAGE_NUMBER,
         },
         {
           type: sequelize.QueryTypes.SELECT,
@@ -147,24 +153,26 @@ exports.deleteFile = async ({ filePath }) => {
         logger.info(successResponses.FILE_DELETED_SUCCESSFULLY);
       }
     });
+  } catch (err) {
+    logger.error(err);
   }
-  catch (err) {
-    logger.error(err)
-  }
-}
+};
 
-exports.processCsvFile = async ({ csvFile }) => {
+exports.processCsvFile = async ({ csvFile, userId }) => {
   let uploadResult, inputDataUrl, responseDataUrl, processStatus, statusCode;
   try {
-    let { uploadData } = await this.createEntryOfImportHistory({ csvFile });
+    let { uploadData } = await this.createEntryOfImportHistory({
+      csvFile,
+      userId,
+    });
     uploadResult = uploadData;
 
     const { success: fileValidationStatus, message: fileValidationMessage } =
       await this.csvFileAndHeaderValidation({ csvFile });
     if (!fileValidationStatus) {
-      uploadData.status = status.FAILED
-      uploadData.save()
-      await this.deleteFile({ filePath: csvFile.path })
+      uploadData.status = status.FAILED;
+      uploadData.save();
+      await this.deleteFile({ filePath: csvFile.path });
       return {
         success: false,
         errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
@@ -264,7 +272,10 @@ exports.csvFileAndHeaderValidation = async ({ csvFile }) => {
     const csvHeaders = lines[0].split(',');
     csvHeaders.forEach((headerField) => {
       headerField = headerField.replace(/"/g, '').trim();
-      if (!csvMandatoryHeaders.includes(headerField) && !csvInputExcludedHeaders.includes(headerField)) {
+      if (
+        !csvMandatoryHeaders.includes(headerField) &&
+        !csvInputExcludedHeaders.includes(headerField)
+      ) {
         throw errorResponses.INVALID_CSV_HEADERS;
       }
     });
@@ -322,7 +333,7 @@ exports.convertJsonToCsvAndUploadCsv = async ({ finalList, csvFile }) => {
       filePath: responseFileLocation,
       location: process.env.RESPONSE_FILE_LOCATION,
     });
-    await this.deleteFile({ filePath: responseFileLocation })
+    await this.deleteFile({ filePath: responseFileLocation });
     return {
       responsePublicUrl: publicUrl,
     };
@@ -331,12 +342,12 @@ exports.convertJsonToCsvAndUploadCsv = async ({ finalList, csvFile }) => {
   }
 };
 
-exports.createEntryOfImportHistory = async ({ csvFile }) => {
+exports.createEntryOfImportHistory = async ({ csvFile, userId }) => {
   try {
     const uploadData = await aergov_device_import_histories.create({
       file_name: csvFile.originalname,
       status: status.IN_PROGRESS,
-      uploaded_by: 'u_1', // TODO after implementing RBAC
+      uploaded_by: userId,
     });
     return { uploadData };
   } catch (err) {
@@ -397,7 +408,7 @@ exports.convertCsvToJson = async ({ csvFilePath }) => {
         ...rest,
       };
     });
-    await this.deleteFile({ filePath: csvFilePath })
+    await this.deleteFile({ filePath: csvFilePath });
     return { jsonData: updatedData };
   } catch (err) {
     logger.error(err);
