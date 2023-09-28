@@ -29,7 +29,8 @@ const {
   filterCondition,
   deviceStatus,
   sortOrder,
-  csvHeaders,
+  csvInputExcludedHeaders,
+  csvResponseHeaders,
 } = require('./inventory.constant');
 const { levelStarting } = require('../../utils/constant');
 const { defaultValues } = require('../../services/aerpace-ecosystem-backend-db/src/commons/constant');
@@ -43,27 +44,27 @@ exports.getInventory = async ({ params, paginationQuery }) => {
     const filerOptions = [];
     if (params.model_name) {
       filerOptions.push(
-        `${filterCondition.model_name} = '${params.model_name.trim()}'`,
+        `${filterCondition.MODEL_NAME} = '${params.model_name.trim()}'`,
       );
     }
     if (params.variant_name) {
       filerOptions.push(
-        `${filterCondition.variant_name} = '${params.variant_name.trim()}'`,
+        `${filterCondition.VARIANT_NAME} = '${params.variant_name.trim()}'`,
       );
     }
     if (params.version_name) {
       filerOptions.push(
-        `${filterCondition.version_name} = '${params.version_name.trim()}'`,
+        `${filterCondition.VERSION_NAME} = '${params.version_name.trim()}'`,
       );
     }
     if (params.color) {
-      filerOptions.push(`${filterCondition.color} = '${params.color.trim()}'`);
+      filerOptions.push(`${filterCondition.COLOR} = '${params.color.trim()}'`);
     }
     if (params.status && params.status.trim() === deviceStatus.ASSIGNED) {
-      filerOptions.push(`${filterCondition.distrubution_id} is NOT NULL`);
+      filerOptions.push(`${filterCondition.DISTRIBUTION_NAME} is NOT NULL`);
     }
     if (params.status && params.status.trim() === deviceStatus.UNASSIGNED) {
-      filerOptions.push(`${filterCondition.distrubution_id} is NULL`);
+      filerOptions.push(`${filterCondition.DISTRIBUTION_NAME} is NULL`);
     }
     let modelFilter = '';
     if (filerOptions.length > 0) {
@@ -87,7 +88,7 @@ exports.getInventory = async ({ params, paginationQuery }) => {
     };
     return {
       success: true,
-      message: successResponses.DATA_FETCH_SUCCESSFULL,
+      message: successResponses.DATA_FETCH_SUCCESSFUL,
       data: data,
     };
   } catch (err) {
@@ -137,8 +138,23 @@ exports.getInventoryImportHistory = async (params) => {
   }
 };
 
+exports.deleteFile = async ({ filePath }) => {
+  try {
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        logger.error(err);
+      } else {
+        logger.info(successResponses.FILE_DELETED_SUCCESSFULLY);
+      }
+    });
+  }
+  catch (err) {
+    logger.error(err)
+  }
+}
+
 exports.processCsvFile = async ({ csvFile }) => {
-  let uploadResult, inputDataUrl, reponseDataUrl, processStatus, statusCode;
+  let uploadResult, inputDataUrl, responseDataUrl, processStatus, statusCode;
   try {
     let { uploadData } = await this.createEntryOfImportHistory({ csvFile });
     uploadResult = uploadData;
@@ -146,6 +162,9 @@ exports.processCsvFile = async ({ csvFile }) => {
     const { success: fileValidationStatus, message: fileValidationMessage } =
       await this.csvFileAndHeaderValidation({ csvFile });
     if (!fileValidationStatus) {
+      uploadData.status = status.FAILED
+      uploadData.save()
+      await this.deleteFile({ filePath: csvFile.path })
       return {
         success: false,
         errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
@@ -180,7 +199,7 @@ exports.processCsvFile = async ({ csvFile }) => {
       finalList,
       csvFile,
     });
-    reponseDataUrl = responsePublicUrl;
+    responseDataUrl = responsePublicUrl;
     if (rejectedEntries.length === jsonData.length) {
       processStatus = status.FAILED;
       statusCode = statusCodes.STATUS_CODE_INVALID_FORMAT;
@@ -188,7 +207,7 @@ exports.processCsvFile = async ({ csvFile }) => {
       processStatus = status.COMPLETED;
       statusCode = statusCodes.STATUS_CODE_SUCCESS;
     } else {
-      processStatus = status.PATIALLY_COMPLETED;
+      processStatus = status.PARTIALLY_COMPLETED;
       statusCode = statusCodes.STATUS_CODE_INVALID_FORMAT;
     }
 
@@ -214,7 +233,7 @@ exports.processCsvFile = async ({ csvFile }) => {
       status: processStatus,
     });
     if (
-      processStatus === status.PATIALLY_COMPLETED ||
+      processStatus === status.PARTIALLY_COMPLETED ||
       processStatus === status.FAILED
     ) {
       return {
@@ -222,7 +241,7 @@ exports.processCsvFile = async ({ csvFile }) => {
         errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
         message: `${keyWords.process} ${processStatus}`,
         data: {
-          response_file_url: reponseDataUrl,
+          response_file_url: responseDataUrl,
         },
       };
     }
@@ -244,7 +263,8 @@ exports.csvFileAndHeaderValidation = async ({ csvFile }) => {
     const lines = data.split('\n');
     const csvHeaders = lines[0].split(',');
     csvHeaders.forEach((headerField) => {
-      if (!csvMandatoryHeaders.includes(headerField)) {
+      headerField = headerField.replace(/"/g, '').trim();
+      if (!csvMandatoryHeaders.includes(headerField) && !csvInputExcludedHeaders.includes(headerField)) {
         throw errorResponses.INVALID_CSV_HEADERS;
       }
     });
@@ -291,10 +311,10 @@ exports.convertJsonToCsvAndUploadCsv = async ({ finalList, csvFile }) => {
       return {
         ...obj,
         'mac address': obj['mac_address'],
-        'version id': obj['version_id'], // Rename the attribute
+        'version id': obj['version_id'],
       };
     });
-    const fields = csvMandatoryHeaders;
+    const fields = csvResponseHeaders;
     const csv = json2csv(modifiedFinalList, { fields });
     fs.writeFileSync(responseFileLocation, csv, 'utf-8');
     const { publicUrl } = await this.uploadCsvToS3({
@@ -302,13 +322,7 @@ exports.convertJsonToCsvAndUploadCsv = async ({ finalList, csvFile }) => {
       filePath: responseFileLocation,
       location: process.env.RESPONSE_FILE_LOCATION,
     });
-    fs.unlink(responseFileLocation, (err) => {
-      if (err) {
-        logger.error(err);
-      } else {
-        logger.info(successResponses.FILE_DELETED_SUCCESSFULLY);
-      }
-    });
+    await this.deleteFile({ filePath: responseFileLocation })
     return {
       responsePublicUrl: publicUrl,
     };
@@ -383,13 +397,7 @@ exports.convertCsvToJson = async ({ csvFilePath }) => {
         ...rest,
       };
     });
-    fs.unlink(csvFilePath, (err) => {
-      if (err) {
-        logger.error(err);
-      } else {
-        logger.info(successResponses.FILE_DELETED_SUCCESSFULLY);
-      }
-    });
+    await this.deleteFile({ filePath: csvFilePath })
     return { jsonData: updatedData };
   } catch (err) {
     logger.error(err);
