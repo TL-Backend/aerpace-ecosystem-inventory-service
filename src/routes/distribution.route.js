@@ -14,8 +14,16 @@ const {
 } = require('../controllers/distribution/distribution.middleware');
 
 module.exports = function (app) {
-  app.post('/distribution/assign', validateInputToAssignOrUnassignDevices, assignDevices);
-  app.post('/distribution/unassign', validateInputToAssignOrUnassignDevices, unassignDevices);
+  app.post(
+    '/distribution/assign',
+    validateInputToAssignOrUnassignDevices,
+    assignDevices,
+  );
+  app.post(
+    '/distribution/unassign',
+    validateInputToAssignOrUnassignDevices,
+    unassignDevices,
+  );
   app.post('/distribution', validateDistributionInput, addDistribution);
   app.get('/distribution', validateListDistributionInput, listDistributions);
   app.patch(

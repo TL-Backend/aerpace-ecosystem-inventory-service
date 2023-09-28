@@ -41,7 +41,7 @@ exports.listInventory = async (req, res, next) => {
     return successResponse({
       res,
       data: inventoryData,
-      message: successResponses.DATA_FETCH_SUCCESSFULL,
+      message: successResponses.DATA_FETCH_SUCCESSFUL,
       code: statusCodes.STATUS_CODE_SUCCESS,
     });
   } catch (err) {
@@ -89,8 +89,10 @@ exports.getImportHistoryList = async (req, res, next) => {
 exports.importCsv = async (req, res, next) => {
   try {
     const csv_file = req.file;
+    const { userId } = req.query;
     const { success, errorCode, message, data } = await processCsvFile({
       csvFile: csv_file,
+      userId,
     });
     if (!success) {
       return errorResponse({

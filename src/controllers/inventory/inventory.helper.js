@@ -33,6 +33,9 @@ const {
   csvResponseHeaders,
 } = require('./inventory.constant');
 const { levelStarting } = require('../../utils/constant');
+const {
+  defaultValues,
+} = require('../../services/aerpace-ecosystem-backend-db/src/commons/constant');
 
 exports.getInventory = async ({ params, paginationQuery }) => {
   try {
@@ -43,27 +46,27 @@ exports.getInventory = async ({ params, paginationQuery }) => {
     const filerOptions = [];
     if (params.model_name) {
       filerOptions.push(
-        `${filterCondition.model_name} = '${params.model_name.trim()}'`,
+        `${filterCondition.MODEL_NAME} = '${params.model_name.trim()}'`,
       );
     }
     if (params.variant_name) {
       filerOptions.push(
-        `${filterCondition.variant_name} = '${params.variant_name.trim()}'`,
+        `${filterCondition.VARIANT_NAME} = '${params.variant_name.trim()}'`,
       );
     }
     if (params.version_name) {
       filerOptions.push(
-        `${filterCondition.version_name} = '${params.version_name.trim()}'`,
+        `${filterCondition.VERSION_NAME} = '${params.version_name.trim()}'`,
       );
     }
     if (params.color) {
-      filerOptions.push(`${filterCondition.color} = '${params.color.trim()}'`);
+      filerOptions.push(`${filterCondition.COLOR} = '${params.color.trim()}'`);
     }
     if (params.status && params.status.trim() === deviceStatus.ASSIGNED) {
-      filerOptions.push(`${filterCondition.distrubution_id} is NOT NULL`);
+      filerOptions.push(`${filterCondition.DISTRIBUTION_NAME} is NOT NULL`);
     }
     if (params.status && params.status.trim() === deviceStatus.UNASSIGNED) {
-      filerOptions.push(`${filterCondition.distrubution_id} is NULL`);
+      filerOptions.push(`${filterCondition.DISTRIBUTION_NAME} is NULL`);
     }
     let modelFilter = '';
     if (filerOptions.length > 0) {
@@ -74,7 +77,7 @@ exports.getInventory = async ({ params, paginationQuery }) => {
     );
     let totalPages = Math.round(
       parseInt(inventoryData[0][0]?.data_count || 0) /
-      parseInt(pageLimit || 10),
+        parseInt(pageLimit || 10),
     );
     const data = {
       devices: inventoryData[0],
@@ -87,7 +90,7 @@ exports.getInventory = async ({ params, paginationQuery }) => {
     };
     return {
       success: true,
-      message: successResponses.DATA_FETCH_SUCCESSFULL,
+      message: successResponses.DATA_FETCH_SUCCESSFUL,
       data: data,
     };
   } catch (err) {
@@ -106,8 +109,12 @@ exports.getInventoryImportHistory = async (params) => {
     const importHistory = await sequelize.query(
       getImportHistoryQuery(
         {
-          pageLimit: parseInt(params.query.page_limit),
-          pageNumber: parseInt(params.query.page_number),
+          pageLimit:
+            parseInt(params.query.page_limit) ||
+            defaultValues.DEFAULT_PAGE_LIMIT,
+          pageNumber:
+            parseInt(params.query.page_number) ||
+            defaultValues.DEFAULT_PAGE_NUMBER,
         },
         {
           type: sequelize.QueryTypes.SELECT,
@@ -119,7 +126,7 @@ exports.getInventoryImportHistory = async (params) => {
 
     totalPages = Math.round(
       parseInt(importHistory[0][0]?.total_count) /
-      parseInt(importHistory[0][0]?.page_limit),
+        parseInt(importHistory[0][0]?.page_limit),
     );
 
     return new HelperResponse({
@@ -146,24 +153,26 @@ exports.deleteFile = async ({ filePath }) => {
         logger.info(successResponses.FILE_DELETED_SUCCESSFULLY);
       }
     });
+  } catch (err) {
+    logger.error(err);
   }
-  catch (err) {
-    logger.error(err)
-  }
-}
+};
 
-exports.processCsvFile = async ({ csvFile }) => {
-  let uploadResult, inputDataUrl, reponseDataUrl, processStatus, statusCode;
+exports.processCsvFile = async ({ csvFile, userId }) => {
+  let uploadResult, inputDataUrl, responseDataUrl, processStatus, statusCode;
   try {
-    let { uploadData } = await this.createEntryOfImportHistory({ csvFile });
+    let { uploadData } = await this.createEntryOfImportHistory({
+      csvFile,
+      userId,
+    });
     uploadResult = uploadData;
 
     const { success: fileValidationStatus, message: fileValidationMessage } =
       await this.csvFileAndHeaderValidation({ csvFile });
     if (!fileValidationStatus) {
-      uploadData.status = status.FAILED
-      uploadData.save()
-      await this.deleteFile({ filePath: csvFile.path })
+      uploadData.status = status.FAILED;
+      uploadData.save();
+      await this.deleteFile({ filePath: csvFile.path });
       return {
         success: false,
         errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
@@ -198,7 +207,7 @@ exports.processCsvFile = async ({ csvFile }) => {
       finalList,
       csvFile,
     });
-    reponseDataUrl = responsePublicUrl;
+    responseDataUrl = responsePublicUrl;
     if (rejectedEntries.length === jsonData.length) {
       processStatus = status.FAILED;
       statusCode = statusCodes.STATUS_CODE_INVALID_FORMAT;
@@ -206,7 +215,7 @@ exports.processCsvFile = async ({ csvFile }) => {
       processStatus = status.COMPLETED;
       statusCode = statusCodes.STATUS_CODE_SUCCESS;
     } else {
-      processStatus = status.PATIALLY_COMPLETED;
+      processStatus = status.PARTIALLY_COMPLETED;
       statusCode = statusCodes.STATUS_CODE_INVALID_FORMAT;
     }
 
@@ -232,7 +241,7 @@ exports.processCsvFile = async ({ csvFile }) => {
       status: processStatus,
     });
     if (
-      processStatus === status.PATIALLY_COMPLETED ||
+      processStatus === status.PARTIALLY_COMPLETED ||
       processStatus === status.FAILED
     ) {
       return {
@@ -240,7 +249,7 @@ exports.processCsvFile = async ({ csvFile }) => {
         errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
         message: `${keyWords.process} ${processStatus}`,
         data: {
-          response_file_url: reponseDataUrl,
+          response_file_url: responseDataUrl,
         },
       };
     }
@@ -263,7 +272,10 @@ exports.csvFileAndHeaderValidation = async ({ csvFile }) => {
     const csvHeaders = lines[0].split(',');
     csvHeaders.forEach((headerField) => {
       headerField = headerField.replace(/"/g, '').trim();
-      if (!csvMandatoryHeaders.includes(headerField) && !csvInputExcludedHeaders.includes(headerField)) {
+      if (
+        !csvMandatoryHeaders.includes(headerField) &&
+        !csvInputExcludedHeaders.includes(headerField)
+      ) {
         throw errorResponses.INVALID_CSV_HEADERS;
       }
     });
@@ -321,7 +333,7 @@ exports.convertJsonToCsvAndUploadCsv = async ({ finalList, csvFile }) => {
       filePath: responseFileLocation,
       location: process.env.RESPONSE_FILE_LOCATION,
     });
-    await this.deleteFile({ filePath: responseFileLocation })
+    await this.deleteFile({ filePath: responseFileLocation });
     return {
       responsePublicUrl: publicUrl,
     };
@@ -330,12 +342,12 @@ exports.convertJsonToCsvAndUploadCsv = async ({ finalList, csvFile }) => {
   }
 };
 
-exports.createEntryOfImportHistory = async ({ csvFile }) => {
+exports.createEntryOfImportHistory = async ({ csvFile, userId }) => {
   try {
     const uploadData = await aergov_device_import_histories.create({
       file_name: csvFile.originalname,
       status: status.IN_PROGRESS,
-      uploaded_by: 'u_1', // TODO after implementing RBAC
+      uploaded_by: userId,
     });
     return { uploadData };
   } catch (err) {
@@ -396,7 +408,7 @@ exports.convertCsvToJson = async ({ csvFilePath }) => {
         ...rest,
       };
     });
-    await this.deleteFile({ filePath: csvFilePath })
+    await this.deleteFile({ filePath: csvFilePath });
     return { jsonData: updatedData };
   } catch (err) {
     logger.error(err);
