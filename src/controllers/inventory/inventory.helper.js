@@ -15,6 +15,7 @@ const csv = require('csvtojson');
 const AWS = require('aws-sdk');
 const moment = require('moment');
 const fs = require('fs');
+const rimraf = require('rimraf');
 const {
   errorResponses,
   status,
@@ -137,6 +138,21 @@ exports.getInventoryImportHistory = async (params) => {
   }
 };
 
+exports.deleteFile = async ({ filePath }) => {
+  try {
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        logger.error(err);
+      } else {
+        logger.info(successResponses.FILE_DELETED_SUCCESSFULLY);
+      }
+    });
+  }
+  catch (err) {
+    logger.error(err)
+  }
+}
+
 exports.processCsvFile = async ({ csvFile }) => {
   let uploadResult, inputDataUrl, reponseDataUrl, processStatus, statusCode;
   try {
@@ -146,6 +162,9 @@ exports.processCsvFile = async ({ csvFile }) => {
     const { success: fileValidationStatus, message: fileValidationMessage } =
       await this.csvFileAndHeaderValidation({ csvFile });
     if (!fileValidationStatus) {
+      uploadData.status = status.FAILED
+      uploadData.save()
+      await this.deleteFile({ filePath: csvFile.path })
       return {
         success: false,
         errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
@@ -303,13 +322,7 @@ exports.convertJsonToCsvAndUploadCsv = async ({ finalList, csvFile }) => {
       filePath: responseFileLocation,
       location: process.env.RESPONSE_FILE_LOCATION,
     });
-    fs.unlink(responseFileLocation, (err) => {
-      if (err) {
-        logger.error(err);
-      } else {
-        logger.info(successResponses.FILE_DELETED_SUCCESSFULLY);
-      }
-    });
+    await this.deleteFile({ filePath: responseFileLocation })
     return {
       responsePublicUrl: publicUrl,
     };
@@ -384,13 +397,7 @@ exports.convertCsvToJson = async ({ csvFilePath }) => {
         ...rest,
       };
     });
-    fs.unlink(csvFilePath, (err) => {
-      if (err) {
-        logger.error(err);
-      } else {
-        logger.info(successResponses.FILE_DELETED_SUCCESSFULLY);
-      }
-    });
+    await this.deleteFile({ filePath: csvFilePath })
     return { jsonData: updatedData };
   } catch (err) {
     logger.error(err);
