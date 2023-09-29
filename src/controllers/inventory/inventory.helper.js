@@ -94,11 +94,11 @@ exports.getInventory = async ({ params, paginationQuery }) => {
       data: data,
     };
   } catch (err) {
-    logger.error(err);
+    logger.error(err.message);
     return {
       success: false,
       errorCode: statusCodes.STATUS_CODE_FAILURE,
-      message: err.message,
+      message: errorResponses.INTERNAL_ERROR,
       data: null,
     };
   }
@@ -140,7 +140,10 @@ exports.getInventoryImportHistory = async (params) => {
       },
     });
   } catch (err) {
-    return new HelperResponse({ success: false, message: err.message });
+    return new HelperResponse({
+      success: false,
+      message: errorResponses.INTERNAL_ERROR,
+    });
   }
 };
 
@@ -148,13 +151,13 @@ exports.deleteFile = async ({ filePath }) => {
   try {
     fs.unlink(filePath, (err) => {
       if (err) {
-        logger.error(err);
+        logger.error(err.message);
       } else {
         logger.info(successResponses.FILE_DELETED_SUCCESSFULLY);
       }
     });
   } catch (err) {
-    logger.error(err);
+    logger.error(err.message);
   }
 };
 
@@ -234,7 +237,7 @@ exports.processCsvFile = async ({ csvFile, userId }) => {
       },
     };
   } catch (err) {
-    logger.error(err);
+    logger.error(err.message);
     await this.updateImportHistory({
       uploadData: uploadResult,
       inputPublicUrl: inputDataUrl,
@@ -283,10 +286,10 @@ exports.csvFileAndHeaderValidation = async ({ csvFile }) => {
       success: true,
     };
   } catch (err) {
-    logger.error(err);
+    logger.error(err.message);
     return {
       success: false,
-      message: err,
+      message: errorResponses.INTERNAL_ERROR,
     };
   }
 };
@@ -338,7 +341,7 @@ exports.convertJsonToCsvAndUploadCsv = async ({ finalList, csvFile }) => {
       responsePublicUrl: publicUrl,
     };
   } catch (err) {
-    logger.error(err);
+    logger.error(err.message);
   }
 };
 
@@ -383,10 +386,10 @@ exports.uploadCsvToS3 = async ({ file, filePath, location }) => {
         publicUrl,
       };
     } catch (err) {
-      logger.error(err);
+      logger.error(err.message);
     }
   } catch (err) {
-    logger.error(err);
+    logger.error(err.message);
   }
 };
 
@@ -411,7 +414,7 @@ exports.convertCsvToJson = async ({ csvFilePath }) => {
     await this.deleteFile({ filePath: csvFilePath });
     return { jsonData: updatedData };
   } catch (err) {
-    logger.error(err);
+    logger.error(err.message);
   }
 };
 
@@ -428,7 +431,7 @@ exports.validateEachEntry = async ({ jsonData }) => {
     });
     return { validEntries, invalidEntries };
   } catch (err) {
-    logger.error(err);
+    logger.error(err.message);
   }
 };
 
@@ -464,7 +467,7 @@ exports.validateUniqueEntries = async ({
     }
     return { uniqueListOfObjects, duplicateListOfObjects };
   } catch (err) {
-    logger.error(err);
+    logger.error(err.message);
   }
 };
 
@@ -497,7 +500,7 @@ exports.removeDuplicatedData = async ({ jsonData }) => {
     });
     return { uniqueListOfObjects, duplicateListOfObjects };
   } catch (err) {
-    logger.error(err);
+    logger.error(err.message);
   }
 };
 
@@ -562,7 +565,7 @@ exports.validateAndCreateDeviceEntries = async ({
           }
         }
       } catch (err) {
-        logger.error(err);
+        logger.error(err.message);
         obj.status = status.ERROR;
         obj.message = errorResponses.ERROR_OCCURED_AT_VALIDATION_AND_CREATION;
         invalidEntries.push(obj);
@@ -574,7 +577,7 @@ exports.validateAndCreateDeviceEntries = async ({
       invalidEntries,
     };
   } catch (err) {
-    logger.error(err);
+    logger.error(err.message);
   }
 };
 
@@ -617,7 +620,7 @@ exports.checkVersionValidity = async ({ versionId }) => {
       data: data.dataValues,
     };
   } catch (err) {
-    logger.error(err);
+    logger.error(err.message);
   }
 };
 
@@ -637,7 +640,7 @@ exports.checkMacAddressValidity = async ({ macAddress }) => {
       success: true,
     };
   } catch (err) {
-    logger.error(err);
+    logger.error(err.message);
   }
 };
 
@@ -662,6 +665,6 @@ exports.createDeviceEntry = async ({ obj, data, sourceData }) => {
       success: true,
     };
   } catch (err) {
-    logger.error(err);
+    logger.error(err.message);
   }
 };

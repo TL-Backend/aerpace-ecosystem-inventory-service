@@ -99,7 +99,7 @@ exports.assignDevicesHelper = async (params) => {
       message: successResponses.DEVICE_ASSIGNED(distribution?.name),
     });
   } catch (err) {
-    logger.error(err);
+    logger.error(err.message);
     return new HelperResponse({ success: false, message: err.message });
   }
 };
@@ -182,7 +182,7 @@ exports.unassignDevicesHelper = async (params) => {
       message: successResponses.DEVICE_UNASSIGNED(distribution?.name),
     });
   } catch (err) {
-    logger.error(err);
+    logger.error(err.message);
     return new HelperResponse({ success: false, message: err.message });
   }
 };
@@ -266,7 +266,6 @@ exports.addDistributionHelper = async (data) => {
     };
   } catch (err) {
     logger.error(err.message);
-    logger.error(err);
     transaction.rollback();
     return {
       success: false,
@@ -290,7 +289,7 @@ exports.checkDistributionExistWithEmail = async (email) => {
       data: data[0],
     };
   } catch (err) {
-    logger.error(err);
+    logger.error(err.message);
     return {
       success: false,
       errorCode: statusCodes.STATUS_CODE_FAILURE,
@@ -334,7 +333,7 @@ exports.validateDataInDBById = async (id_key, table) => {
       data: data[0],
     };
   } catch (err) {
-    logger.error(err);
+    logger.error(err.message);
     return {
       success: true,
       errorCode: statusCodes.STATUS_CODE_FAILURE,
@@ -379,7 +378,7 @@ exports.editDistributionHelper = async (data, id) => {
       data: data,
     };
   } catch (err) {
-    logger.error(err);
+    logger.error(err.message);
     return {
       success: false,
       errorCode: statusCodes.STATUS_CODE_FAILURE,
@@ -422,7 +421,7 @@ exports.listDistributionsHelper = async (params) => {
       message: successResponses.DISTRIBUTION_UPDATED_MESSAGE,
     };
   } catch (err) {
-    logger.error(err);
+    logger.error(err.message);
     return {
       success: false,
       errorCode: statusCodes.STATUS_CODE_FAILURE,
