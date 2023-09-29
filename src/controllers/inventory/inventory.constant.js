@@ -7,7 +7,7 @@ exports.successResponses = {
   CSV_IMPORT_HISTORY_FETCHED_MESSAGE:
     'Inventory import history fetched successfully',
   PROCESS_COMPLETED: 'Process completed successfully',
-  FILE_UPLOADED_SUCCESSFULLY: 'File uploaded successfully:',
+  FILE_UPLOADED_SUCCESSFULLY: 'File uploaded successfully',
   FILE_DELETED_SUCCESSFULLY: 'File deleted successfully',
 };
 
@@ -23,7 +23,7 @@ exports.errorResponses = {
   INVALID_CSV_HEADERS: 'Invalid csv headers',
   INVALID_VERSION_ID: 'Invalid version id',
   INVALID_COLOR: 'Invalid color or color is empty',
-  INTERNAL_ERROR: 'Internal error',
+  INTERNAL_ERROR: 'Something went wrong',
   IN_PROGRESS: 'In progress',
   PROCESS_FAILED: 'Process failed',
   DUPLICATE_DATA: 'Duplicate data',
@@ -58,16 +58,9 @@ exports.keyWords = {
   process: `process`,
 };
 
-exports.csvMandatoryHeaders = [
-  'mac address',
-  'version id',
-  'color'
-];
+exports.csvMandatoryHeaders = ['mac address', 'version id', 'color'];
 
-exports.csvInputExcludedHeaders = [
-  'status',
-  'message'
-]
+exports.csvInputExcludedHeaders = ['status', 'message'];
 
 exports.csvResponseHeaders = [
   'mac address',
@@ -75,7 +68,7 @@ exports.csvResponseHeaders = [
   'color',
   'status',
   'message',
-]
+];
 
 exports.eachLimitValue = 10;
 

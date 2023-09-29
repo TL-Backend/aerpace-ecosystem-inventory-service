@@ -45,7 +45,7 @@ exports.listInventory = async (req, res, next) => {
       code: statusCodes.STATUS_CODE_SUCCESS,
     });
   } catch (err) {
-    logger.error(err);
+    logger.error(err.message);
     return errorResponse({
       res,
       code: statusCodes.STATUS_CODE_FAILURE,
@@ -77,7 +77,7 @@ exports.getImportHistoryList = async (req, res, next) => {
       code: statusCodes.STATUS_CODE_SUCCESS,
     });
   } catch (error) {
-    logger.error(error);
+    logger.error(error.message);
     return errorResponse({
       req,
       res,
@@ -109,7 +109,7 @@ exports.importCsv = async (req, res, next) => {
       message,
     });
   } catch (err) {
-    logger.error(err);
+    logger.error(err.message);
     return errorResponse({
       req,
       res,

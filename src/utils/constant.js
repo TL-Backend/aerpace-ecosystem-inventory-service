@@ -17,7 +17,7 @@ exports.successResponses = {
 };
 
 exports.errorResponses = {
-  FAILURE: `Failed to perform the operation`,
+  FAILURE: `Something went wrong`,
 };
 
 exports.levelStarting = {
