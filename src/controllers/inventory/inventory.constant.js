@@ -55,7 +55,7 @@ exports.status = {
 };
 
 exports.keyWords = {
-  process: `process`,
+  process: `Process`,
 };
 
 exports.csvMandatoryHeaders = ['mac address', 'version id', 'color'];

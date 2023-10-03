@@ -301,7 +301,6 @@ exports.updateImportHistory = async ({
   status,
 }) => {
   try {
-    const currentInstance = moment().format();
     const data = await aergov_device_import_histories.findOne({
       where: {
         id: uploadData.id,
@@ -310,7 +309,6 @@ exports.updateImportHistory = async ({
     data.status = status;
     data.input_file = inputPublicUrl;
     data.response_file = responsePublicUrl;
-    data.uploaded_at = currentInstance;
     data.save();
     return;
   } catch (err) {
@@ -347,9 +345,11 @@ exports.convertJsonToCsvAndUploadCsv = async ({ finalList, csvFile }) => {
 
 exports.createEntryOfImportHistory = async ({ csvFile, userId }) => {
   try {
+    const currentInstance = moment().format();
     const uploadData = await aergov_device_import_histories.create({
       file_name: csvFile.originalname,
       status: status.IN_PROGRESS,
+      uploaded_at : currentInstance,
       uploaded_by: userId,
     });
     return { uploadData };
