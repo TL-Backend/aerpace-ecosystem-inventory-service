@@ -43,7 +43,7 @@ exports.errorResponses = {
   DISTRIBUTIONS_EXIST_WITH_THIS_EMAIL:
     'Distribution already exist with this email',
   INTERNAL_ERROR: `Something went wrong`,
-  DISTRIBUTION_NOT_FOUND: `Distribution not found`,
+  DISTRIBUTION_DETAILS_NOT_FOUND: `Distribution not found`,
 };
 
 exports.defaults = {

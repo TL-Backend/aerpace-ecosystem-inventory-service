@@ -484,7 +484,7 @@ exports.getDistributionDetails = async ({ id }) => {
       return new HelperResponse({
         success: false,
         errorCode: statusCodes.STATUS_CODE_DATA_NOT_FOUND,
-        message: errorResponses.DISTRIBUTION_NOT_FOUND,
+        message: errorResponses.DISTRIBUTION_DETAILS_NOT_FOUND,
       }); 
     }
     return new HelperResponse({
