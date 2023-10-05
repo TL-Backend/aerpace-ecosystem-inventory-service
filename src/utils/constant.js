@@ -23,3 +23,11 @@ exports.errorResponses = {
 exports.levelStarting = {
   version: 'ver_',
 };
+
+exports.methods = {
+  POST: `POST`,
+  GET: `GET`,
+  PATCH: `PATCH`,
+  PUT: `PUT`,
+  DELETE: `DELETE`,
+};

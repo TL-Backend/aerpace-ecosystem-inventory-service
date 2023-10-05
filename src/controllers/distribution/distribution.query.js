@@ -56,6 +56,7 @@ exports.getListDistributorsQuery = (params) => {
   if (region) {
     let filterData = region.split(',');
     filterData.forEach((data) => {
+      data = data.trim();
       queryFilterCondition =
         queryFilterCondition === ''
           ? `WHERE region = '${data}'`

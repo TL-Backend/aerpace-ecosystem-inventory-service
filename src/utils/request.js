@@ -1,4 +1,5 @@
 const rp = require('request-promise');
+const { methods } = require('./constant');
 
 const ALLOWED_METHODS = ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'];
 
@@ -29,5 +30,29 @@ exports.requestAsync = async (params) => {
 };
 
 exports.postAsync = async (params) => {
-  return this.requestAsync({ method: 'POST', ...params });
+  return this.requestAsync({ method: methods.POST, ...params });
+};
+
+exports.deleteAsync = async ({ uri, headers, body, qs: query, json, form }) => {
+  return this.requestAsync({
+    method: methods.DELETE,
+    uri,
+    headers,
+    body,
+    qs: query,
+    json,
+    form,
+  });
+};
+
+exports.patchAsync = async ({ uri, headers, body, qs: query, json, form }) => {
+  return this.requestAsync({
+    method: methods.PATCH,
+    uri,
+    headers,
+    body,
+    qs: query,
+    json,
+    form,
+  });
 };
