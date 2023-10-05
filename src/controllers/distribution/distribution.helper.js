@@ -14,6 +14,7 @@ const {
   getListDistributorsQuery,
   getFiltersQuery,
   getDistributionByEmailQuery,
+  getDistributionDetailsQuery,
 } = require('./distribution.query');
 const { statusCodes } = require('../../utils/statusCode');
 const {
@@ -469,5 +470,34 @@ exports.listDistributionsHelper = async (params) => {
       message: errorResponses.ERROR_FOUND,
       data: null,
     };
+  }
+};
+
+exports.getDistributionDetails = async ({ id }) => {
+  try {
+    const distribution = await sequelize.query(getDistributionDetailsQuery, {
+      raw: true,
+      replacements: { distribution_id: id },
+    });
+
+    if(!distribution[0].length) {
+      return new HelperResponse({
+        success: false,
+        errorCode: statusCodes.STATUS_CODE_DATA_NOT_FOUND,
+        message: errorResponses.DISTRIBUTION_NOT_FOUND,
+      }); 
+    }
+    return new HelperResponse({
+      success: true,
+      data: distribution[0][0],
+      message: successResponses.DISTRIBUTIONS_FETCHED_MESSAGE,
+    });
+  } catch (err) {
+    logger.error(err.message);
+    return new HelperResponse({
+      success: false,
+      errorCode: statusCodes.STATUS_CODE_FAILURE,
+      message: errorResponses.INTERNAL_ERROR,
+    });
   }
 };

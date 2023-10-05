@@ -41,8 +41,9 @@ exports.errorResponses = {
   ERROR_FOUND: `Error while performing the operations`,
   INVALID_DISTRIBUTION: `Provided distribution id is invalid`,
   DISTRIBUTIONS_EXIST_WITH_THIS_EMAIL:
-    'distribution already exist with this email',
-  INTERNAL_ERROR: `Something went wrong`
+    'Distribution already exist with this email',
+  INTERNAL_ERROR: `Something went wrong`,
+  DISTRIBUTION_NOT_FOUND: `Distribution not found`,
 };
 
 exports.defaults = {

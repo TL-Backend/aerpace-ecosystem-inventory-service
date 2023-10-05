@@ -4,10 +4,10 @@ const {
   addDistribution,
   listDistributions,
   editDistribution,
+  getDistribution,
 } = require('../controllers/distribution/distribution.controller');
 const {
   validateInputToAssignOrUnassignDevices,
-  validateUnassignDevices,
   validateDistributionInput,
   validateEditDistributionInput,
   validateListDistributionInput,
@@ -31,4 +31,5 @@ module.exports = function (app) {
     validateEditDistributionInput,
     editDistribution,
   );
+  app.get('/distribution/:id', getDistribution);
 };
