@@ -42,6 +42,7 @@ exports.errorResponses = {
   INVALID_DISTRIBUTION: `Provided distribution id is invalid`,
   DISTRIBUTIONS_EXIST_WITH_THIS_EMAIL:
     'distribution already exist with this email',
+  INTERNAL_ERROR: `Something went wrong`
 };
 
 exports.defaults = {
@@ -51,6 +52,12 @@ exports.defaults = {
 
 exports.routes = {
   POST_USERS: `/users`,
+  UPDATE_USERS: ({ id }) => {
+    return `users/${id}`;
+  },
+  DELETE_USERS: ({ id }) => {
+    return `users/hard-delete/${id}`;
+  },
 };
 
 exports.prefixes = {

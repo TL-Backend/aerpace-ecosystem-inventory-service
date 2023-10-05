@@ -23,7 +23,7 @@ const {
   routes,
 } = require('./distribution.constant');
 const { dbTables } = require('../../utils/constant');
-const { postAsync } = require('../../utils/request');
+const { postAsync, deleteAsync, patchAsync } = require('../../utils/request');
 
 const USER_SERVICE_API = process.env.USERS_URL;
 
@@ -189,10 +189,14 @@ exports.unassignDevicesHelper = async (params) => {
 
 exports.addDistributionHelper = async (data) => {
   const transaction = await sequelize.transaction();
+  let distributorId;
+
   try {
+    // Check if a distribution with the same email exists
     const distributionExist = await this.checkDistributionExistWithEmail(
       data.distribution_email,
     );
+
     if (distributionExist.data || !distributionExist.success) {
       return {
         success: false,
@@ -201,12 +205,15 @@ exports.addDistributionHelper = async (data) => {
         data: null,
       };
     }
+
+    // Find the default distribution role
     const distributionRole = await aergov_roles.findOne({
       where: { role_name: defaults.DEFAULT_DISTRIBUTION_ROLE_NAME },
       raw: true,
     });
 
-    const body = {
+    // Create a new distributor user
+    const distributorUser = {
       first_name: data.distributor_first_name,
       last_name: data.distributor_last_name,
       role_id: data.distributor_role_id || distributionRole.id,
@@ -218,61 +225,95 @@ exports.addDistributionHelper = async (data) => {
       state: data.distributor_state,
       user_type: defaults.USER_TYPE,
     };
+
     const result = await this.postAsyncUserCreation({
       api: routes.POST_USERS,
-      body: body,
+      body: distributorUser,
     });
-    if (result.code === 200) {
-      const DistributionParams = {
-        name: data.distribution_name,
-        user_id: result.data?.id,
-        region: data.distribution_region,
-        email: data.distribution_email,
-        phone_number: data.distribution_phone_number,
-        address: data.distribution_address,
-        country_code: data.distribution_country_code,
-      };
-      const distributionData = await aergov_distributions.create(
-        DistributionParams,
-        { transaction },
-      );
-      if (distributionData) {
-        await aergov_users.update(
-          {
-            distribution_id: distributionData.id,
-          },
-          {
-            where: { id: result.data?.id },
-            returning: true,
-          },
-          { transaction },
-        );
-        data.distribution_id = distributionData.id;
-      }
-    } else {
-      return {
+
+    if (result.code !== 200) {
+      return new HelperResponse({
         success: false,
-        errorCode: result?.code,
-        message: result?.message,
-        data: null,
-      };
+        data: result.error?.data,
+        errorCode: result.statusCode,
+        message: result.error?.message,
+      });
     }
-    data.distributor_id = result.data?.id;
+
+    distributorId = result.data?.id;
+
+    // Create a new distribution
+    const distributionParams = {
+      name: data.distribution_name,
+      user_id: distributorId,
+      region: data.distribution_region,
+      email: data.distribution_email,
+      phone_number: data.distribution_phone_number,
+      address: data.distribution_address,
+      country_code: data.distribution_country_code,
+    };
+
+    const distributionData = await aergov_distributions.create(
+      distributionParams,
+      { transaction },
+    );
+
+    const distributionId = distributionData?.id;
+
+    if (distributionData) {
+      // Update the user with the distribution_id
+      await patchAsync({
+        uri: `${USER_SERVICE_API}/${routes.UPDATE_USERS({
+          id: distributorId,
+        })}`,
+        body: { distribution_id: distributionId },
+      });
+
+      data.distribution_id = distributionId;
+    }
+
     transaction.commit();
+
     return {
       success: true,
       message: successResponses.DISTRIBUTION_ADDED_MESSAGE,
       data: data,
     };
   } catch (err) {
+    if (err.statusCode) {
+      return new HelperResponse({
+        success: false,
+        data: err.error?.data,
+        errorCode: err.statusCode,
+        message: err.error?.message,
+      });
+    }
+
     logger.error(err.message);
+
+    // Handle the error by deleting the distributor user
+    try {
+      await deleteAsync({
+        uri: `${USER_SERVICE_API}/${routes.DELETE_USERS({
+          id: distributorId,
+        })}`,
+      });
+    } catch (err) {
+      transaction.rollback();
+      return new HelperResponse({
+        success: false,
+        errorCode: statusCodes.STATUS_CODE_FAILURE,
+        message: errorResponses.INTERNAL_ERROR,
+      });
+    }
+
     transaction.rollback();
-    return {
+
+    return new HelperResponse({
       success: false,
-      errorCode: err.error?.code || statusCodes.STATUS_CODE_FAILURE,
-      message: err.error?.message || errorResponses.ERROR_FOUND,
-      data: null,
-    };
+      errorCode: statusCodes.STATUS_CODE_FAILURE,
+      message: errorResponses.INTERNAL_ERROR,
+    });
   }
 };
 
