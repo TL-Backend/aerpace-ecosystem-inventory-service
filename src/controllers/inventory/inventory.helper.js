@@ -31,6 +31,7 @@ const {
   sortOrder,
   csvInputExcludedHeaders,
   csvResponseHeaders,
+  statusMessage,
 } = require('./inventory.constant');
 const { levelStarting } = require('../../utils/constant');
 const {
@@ -77,7 +78,7 @@ exports.getInventory = async ({ params, paginationQuery }) => {
     );
     let totalPages = Math.round(
       parseInt(inventoryData[0][0]?.data_count || 0) /
-        parseInt(pageLimit || 10),
+      parseInt(pageLimit || 10),
     );
     const data = {
       devices: inventoryData[0],
@@ -126,7 +127,7 @@ exports.getInventoryImportHistory = async (params) => {
 
     totalPages = Math.round(
       parseInt(importHistory[0][0]?.total_count) /
-        parseInt(importHistory[0][0]?.page_limit),
+      parseInt(importHistory[0][0]?.page_limit),
     );
 
     return new HelperResponse({
@@ -162,7 +163,7 @@ exports.deleteFile = async ({ filePath }) => {
 };
 
 exports.processCsvFile = async ({ csvFile, userId }) => {
-  let uploadResult, inputDataUrl, responseDataUrl, processStatus, statusCode;
+  let uploadResult, inputDataUrl, responseDataUrl, processStatus, processStatusMessage, statusCode;
   try {
     let { uploadData } = await this.createEntryOfImportHistory({
       csvFile,
@@ -213,12 +214,15 @@ exports.processCsvFile = async ({ csvFile, userId }) => {
     responseDataUrl = responsePublicUrl;
     if (rejectedEntries.length === jsonData.length) {
       processStatus = status.FAILED;
+      processStatusMessage = statusMessage.FAILED
       statusCode = statusCodes.STATUS_CODE_INVALID_FORMAT;
     } else if (rejectedEntries.length === 0) {
       processStatus = status.COMPLETED;
+      processStatusMessage = statusMessage.COMPLETED
       statusCode = statusCodes.STATUS_CODE_SUCCESS;
     } else {
       processStatus = status.PARTIALLY_COMPLETED;
+      processStatusMessage = statusMessage.PARTIALLY_COMPLETED
       statusCode = statusCodes.STATUS_CODE_INVALID_FORMAT;
     }
 
@@ -231,7 +235,7 @@ exports.processCsvFile = async ({ csvFile, userId }) => {
     return {
       success: true,
       errorCode: statusCode,
-      message: `${keyWords.process} ${processStatus}`,
+      message: `${keyWords.process} ${processStatusMessage}`,
       data: {
         response_file_url: responsePublicUrl,
       },
@@ -250,7 +254,7 @@ exports.processCsvFile = async ({ csvFile, userId }) => {
       return {
         success: false,
         errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
-        message: `${keyWords.process} ${processStatus}`,
+        message: `${keyWords.process} ${processStatusMessage}`,
         data: {
           response_file_url: responseDataUrl,
         },
@@ -259,7 +263,7 @@ exports.processCsvFile = async ({ csvFile, userId }) => {
     return {
       success: false,
       errorCode: statusCodes.STATUS_CODE_FAILURE,
-      message: `${keyWords.process} ${status.FAILED}`,
+      message: `${keyWords.process} ${statusMessage.FAILED}`,
       data: null,
     };
   }
@@ -289,7 +293,7 @@ exports.csvFileAndHeaderValidation = async ({ csvFile }) => {
     logger.error(err.message);
     return {
       success: false,
-      message: errorResponses.INTERNAL_ERROR,
+      message: err,
     };
   }
 };
@@ -349,7 +353,7 @@ exports.createEntryOfImportHistory = async ({ csvFile, userId }) => {
     const uploadData = await aergov_device_import_histories.create({
       file_name: csvFile.originalname,
       status: status.IN_PROGRESS,
-      uploaded_at : currentInstance,
+      uploaded_at: currentInstance,
       uploaded_by: userId,
     });
     return { uploadData };
@@ -522,7 +526,7 @@ exports.validateAndCreateDeviceEntries = async ({
             await this.checkVersionValidity({ versionId });
           if (!versionStatus) {
             obj.status = status.ERROR;
-            errorList.push(errorResponses.INVALID_VERSION_ID);
+            errorList.push(errorResponses.VERSION_ID_NOT_EXISTS);
             validVersionId[versionId] = {
               status: false,
               data: null,
@@ -536,7 +540,7 @@ exports.validateAndCreateDeviceEntries = async ({
         } else {
           if (!validVersionId[versionId].status) {
             obj.status = status.ERROR;
-            errorList.push(errorResponses.INVALID_VERSION_ID);
+            errorList.push(errorResponses.VERSION_ID_NOT_EXISTS);
           }
         }
 
@@ -545,7 +549,7 @@ exports.validateAndCreateDeviceEntries = async ({
         });
         if (!macStatus) {
           obj.status = status.ERROR;
-          errorList.push(errorResponses.INVALID_MAC_ADDRESS);
+          errorList.push(errorResponses.MAC_ADDRESS_ALREADY_EXISTS);
         }
 
         if (errorList.length) {
@@ -567,7 +571,7 @@ exports.validateAndCreateDeviceEntries = async ({
       } catch (err) {
         logger.error(err.message);
         obj.status = status.ERROR;
-        obj.message = errorResponses.ERROR_OCCURED_AT_VALIDATION_AND_CREATION;
+        obj.message = errorResponses.DB_FAILED;
         invalidEntries.push(obj);
       }
       finalList.push(obj);
