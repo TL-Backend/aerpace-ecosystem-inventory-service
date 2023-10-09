@@ -97,7 +97,6 @@ FROM ${dbTables.DISTRIBUTIONS_TABLE}
 WHERE email = :email
 `;
 
-
 exports.getDistributionDetailsQuery = `
   SELECT 
       ad.id as distribution_id,
@@ -119,4 +118,4 @@ exports.getDistributionDetailsQuery = `
     FROM ${dbTables.AERGOV_DISTRIBUTION} as ad 
     LEFT JOIN ${dbTables.USERS_TABLE} as au ON au.distribution_id = ad.id 
     WHERE ad.id = :distribution_id
-`
+`;

@@ -480,12 +480,12 @@ exports.getDistributionDetails = async ({ id }) => {
       replacements: { distribution_id: id },
     });
 
-    if(!distribution[0].length) {
+    if (!distribution[0].length) {
       return new HelperResponse({
         success: false,
         errorCode: statusCodes.STATUS_CODE_DATA_NOT_FOUND,
         message: errorResponses.DISTRIBUTION_DETAILS_NOT_FOUND,
-      }); 
+      });
     }
     return new HelperResponse({
       success: true,
