@@ -42,7 +42,7 @@ exports.getInventory = async ({ params, paginationQuery, search }) => {
   try {
     let querySearchCondition = ``;
     if (search) {
-      querySearchCondition = `AND ( ad.mac_number ILIKE '%${search}%' OR adm.name ILIKE '%${search}%' OR adve.name ILIKE '%${search}%' OR adva.name ILIKE '%${search}%' )`;
+      querySearchCondition = `AND ( ad.mac_number ILIKE '%${search}%' OR adm.name ILIKE '%${search}%' OR adve.name ILIKE '%${search}%' OR adva.name ILIKE '%${search}%' OR ad.color ILIKE '%${search}%' OR adis.name ILIKE '%${search}%' )`;
     }
     const pageLimit = params.page_limit;
     const pageNumber = params.page_number;
