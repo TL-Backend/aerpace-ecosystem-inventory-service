@@ -38,8 +38,12 @@ const {
   defaultValues,
 } = require('../../services/aerpace-ecosystem-backend-db/src/commons/constant');
 
-exports.getInventory = async ({ params, paginationQuery }) => {
+exports.getInventory = async ({ params, paginationQuery, search }) => {
   try {
+    let querySearchCondition = ``;
+    if (search) {
+      querySearchCondition = `AND ( ad.mac_number ILIKE '%${search}%' OR adm.name ILIKE '%${search}%' OR adve.name ILIKE '%${search}%' OR adva.name ILIKE '%${search}%' OR ad.color ILIKE '%${search}%' OR adis.name ILIKE '%${search}%' )`;
+    }
     const pageLimit = params.page_limit;
     const pageNumber = params.page_number;
     delete params.pageLimit;
@@ -74,11 +78,11 @@ exports.getInventory = async ({ params, paginationQuery }) => {
       modelFilter = `WHERE ${filerOptions.join(' AND ')}`;
     }
     const inventoryData = await sequelize.query(
-      `${queries.getInventory} ${modelFilter} ${sortOrder} ${paginationQuery}`,
+      `${queries.getInventory} ${modelFilter} ${querySearchCondition} ${sortOrder} ${paginationQuery}`,
     );
     let totalPages = Math.round(
       parseInt(inventoryData[0][0]?.data_count || 0) /
-      parseInt(pageLimit || 10),
+        parseInt(pageLimit || 10),
     );
     const data = {
       devices: inventoryData[0],
@@ -127,7 +131,7 @@ exports.getInventoryImportHistory = async (params) => {
 
     totalPages = Math.round(
       parseInt(importHistory[0][0]?.total_count) /
-      parseInt(importHistory[0][0]?.page_limit),
+        parseInt(importHistory[0][0]?.page_limit),
     );
 
     return new HelperResponse({
@@ -163,7 +167,12 @@ exports.deleteFile = async ({ filePath }) => {
 };
 
 exports.processCsvFile = async ({ csvFile, userId }) => {
-  let uploadResult, inputDataUrl, responseDataUrl, processStatus, processStatusMessage, statusCode;
+  let uploadResult,
+    inputDataUrl,
+    responseDataUrl,
+    processStatus,
+    processStatusMessage,
+    statusCode;
   try {
     let { uploadData } = await this.createEntryOfImportHistory({
       csvFile,
@@ -214,15 +223,15 @@ exports.processCsvFile = async ({ csvFile, userId }) => {
     responseDataUrl = responsePublicUrl;
     if (rejectedEntries.length === jsonData.length) {
       processStatus = status.FAILED;
-      processStatusMessage = statusMessage.FAILED
+      processStatusMessage = statusMessage.FAILED;
       statusCode = statusCodes.STATUS_CODE_INVALID_FORMAT;
     } else if (rejectedEntries.length === 0) {
       processStatus = status.COMPLETED;
-      processStatusMessage = statusMessage.COMPLETED
+      processStatusMessage = statusMessage.COMPLETED;
       statusCode = statusCodes.STATUS_CODE_SUCCESS;
     } else {
       processStatus = status.PARTIALLY_COMPLETED;
-      processStatusMessage = statusMessage.PARTIALLY_COMPLETED
+      processStatusMessage = statusMessage.PARTIALLY_COMPLETED;
       statusCode = statusCodes.STATUS_CODE_INVALID_FORMAT;
     }
 
