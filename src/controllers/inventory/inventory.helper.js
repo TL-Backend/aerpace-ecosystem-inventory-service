@@ -75,8 +75,7 @@ exports.getInventory = async ({ params, paginationQuery, search }) => {
       filerOptions.push(`${filterCondition.DISTRIBUTION_NAME} is NULL`);
     }
     if (filerOptions.length > 0) {
-      modelFilter += 'AND ';
-      modelFilter += `${filerOptions.join(' AND ')}`;
+      modelFilter += ` AND ${filerOptions.join(' AND ')}`;
     }
     const inventoryData = await sequelize.query(
       `${queries.getInventory} ${modelFilter} ${querySearchCondition} ${sortOrder} ${paginationQuery}`,
