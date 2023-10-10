@@ -41,6 +41,7 @@ const {
 exports.getInventory = async ({ params, paginationQuery, search }) => {
   try {
     let querySearchCondition = ``;
+    let modelFilter = ``
     if (search) {
       querySearchCondition = `AND ( ad.mac_number ILIKE '%${search}%' OR adm.name ILIKE '%${search}%' OR adve.name ILIKE '%${search}%' OR adva.name ILIKE '%${search}%' OR ad.color ILIKE '%${search}%' OR adis.name ILIKE '%${search}%' )`;
     }
@@ -73,9 +74,9 @@ exports.getInventory = async ({ params, paginationQuery, search }) => {
     if (params.status && params.status.trim() === deviceStatus.UNASSIGNED) {
       filerOptions.push(`${filterCondition.DISTRIBUTION_NAME} is NULL`);
     }
-    let modelFilter = '';
     if (filerOptions.length > 0) {
-      modelFilter = `WHERE ${filerOptions.join(' AND ')}`;
+      modelFilter += 'AND ';
+      modelFilter += `${filerOptions.join(' AND ')}`;
     }
     const inventoryData = await sequelize.query(
       `${queries.getInventory} ${modelFilter} ${querySearchCondition} ${sortOrder} ${paginationQuery}`,
