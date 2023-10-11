@@ -46,11 +46,20 @@ exports.getListDistributorsQuery = (params) => {
   let paginationCondition = '';
 
   if (search) {
-    searchCondition = `AND dst.name ILIKE '%${search}%' OR dst.region ILIKE '%${search}%' OR dst.email ILIKE '%${search}%' OR usr.first_name ILIKE '%${search}%' OR usr.last_name ILIKE '%${search}%'`;
+    searchCondition = `AND 
+    dst.name ILIKE :search 
+    OR dst.region ILIKE :search 
+    OR dst.email ILIKE :search 
+    OR usr.first_name ILIKE :search 
+    OR usr.last_name ILIKE :search`;
     if (!region)
       searchCondition =
         'WHERE ' +
-        `dst.name ILIKE '%${search}%' OR dst.region ILIKE '%${search}%' OR dst.email ILIKE '%${search}%' OR usr.first_name ILIKE '%${search}%' OR usr.last_name ILIKE '%${search}%'`;
+        `dst.name ILIKE :search 
+        OR dst.region ILIKE :search 
+        OR dst.email ILIKE :search 
+        OR usr.first_name ILIKE :search 
+        OR usr.last_name ILIKE :search`;
   }
 
   if (region) {
