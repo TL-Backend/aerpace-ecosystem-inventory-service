@@ -46,6 +46,7 @@ exports.getInventory = async ({ params }) => {
       status,
       distribution,
       distribution_id: distributionId,
+      device_type: deviceType,
       search,
       page_limit,
       page_number,
@@ -56,6 +57,9 @@ exports.getInventory = async ({ params }) => {
     let versionFilterValues = versionId ? versionId.split(',') : null;
     let colorFilterValues = color ? color.split(',') : null;
     let distributionFilterValues = distribution
+      ? distribution.split(',')
+      : null;
+    let deviceTypeFilterValues = deviceType
       ? distribution.split(',')
       : null;
     let searchValues = search ? `%${search}%` : null;
@@ -70,6 +74,7 @@ exports.getInventory = async ({ params }) => {
       distribution,
       status,
       distributionId,
+      deviceType,
       search,
       pageLimit,
       pageNumber,
@@ -80,6 +85,7 @@ exports.getInventory = async ({ params }) => {
         versions: versionFilterValues,
         colors: colorFilterValues,
         distributions: distributionFilterValues,
+        deviceType: deviceTypeFilterValues,
         search: searchValues,
       },
     });
@@ -92,7 +98,7 @@ exports.getInventory = async ({ params }) => {
 
     let totalPages = Math.round(
       parseInt(inventoryData[0][0]?.data_count || 0) /
-        parseInt(pageLimit || 10),
+      parseInt(pageLimit || 10),
     );
     const data = {
       devices: inventoryData[0],
@@ -142,7 +148,7 @@ exports.getInventoryImportHistory = async (params) => {
 
     totalPages = Math.round(
       parseInt(importHistory[0][0]?.total_count) /
-        parseInt(importHistory[0][0]?.page_limit),
+      parseInt(importHistory[0][0]?.page_limit),
     );
 
     return new HelperResponse({

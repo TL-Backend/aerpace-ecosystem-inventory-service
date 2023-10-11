@@ -9,6 +9,7 @@ exports.getInventory = ({
   status,
   distribution,
   distributionId,
+  deviceType,
   search,
   pageLimit,
   pageNumber,
@@ -32,6 +33,9 @@ exports.getInventory = ({
   let distributionFilter = distribution
     ? `AND adis.name = ANY(ARRAY [:distributions]) `
     : ' ';
+    let deviceTypeFilter = deviceType
+    ? `AND adis.name = ANY(ARRAY [:deviceType]) `
+    : ' ';
   let statusFilter = status ? statuses[status]({ distributionId }) : ' ';
   let querySearchCondition = search
     ? ` AND ( 
@@ -52,6 +56,7 @@ exports.getInventory = ({
     adm.name AS model_name,
     adve.name AS version_name,
     adva.name AS variant_name, 
+    ad.device_type AS device_type,
     ad.mac_number, ad.color, 
     COALESCE (json_build_object('id',ad.distribution_id, 'name',adis.name)) AS distributions
   From ${dbTables.DEVICE_TABLE} AS ad 
@@ -59,7 +64,7 @@ exports.getInventory = ({
   JOIN ${dbTables.DEVICE_VERSION_TABLE} AS adve ON adve.id = ad.version_id 
   JOIN ${dbTables.DEVICE_VARIANT_TABLE} AS adva ON adva.id = ad.variant_id 
   LEFT JOIN ${dbTables.AERGOV_DISTRIBUTION} AS adis ON adis.id = ad.distribution_id
-  WHERE member_id IS NULL ${versionFilter} ${colorFilter} ${distributionFilter} ${statusFilter} 
+  WHERE member_id IS NULL ${versionFilter} ${colorFilter} ${distributionFilter} ${deviceTypeFilter} ${statusFilter} 
     ${querySearchCondition}
   ${paginationQuery}
   `;
