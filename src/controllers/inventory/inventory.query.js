@@ -30,7 +30,7 @@ exports.getInventory = ({
     : ' ';
   let colorFilter = color ? `AND ad.color = ANY(ARRAY [:colors]) ` : ' ';
   let distributionFilter = distribution
-    ? `AND ad.distribution_id = ANY(ARRAY [:distributions]) `
+    ? `AND adis.name = ANY(ARRAY [:distributions]) `
     : ' ';
   let statusFilter = status ? statuses[status]({ distributionId }) : ' ';
   let querySearchCondition = search
@@ -83,3 +83,68 @@ exports.getImportHistoryQuery = ({ pageLimit = 10, pageNumber = 1 }) => {
       ) AS import_histories, ${pageLimit} as page_limit, ${pageNumber} as page_number
 `;
 };
+
+exports.filterInventoryQuery = `
+  SELECT
+  json_build_object(
+      'distributions', COALESCE(
+          json_agg(DISTINCT adis.name),
+          '[]'
+      ),
+      'colors', COALESCE(
+          json_agg(DISTINCT ad.color),
+          '[]'
+      ),
+      'device_types', COALESCE(
+          json_agg(DISTINCT ad.device_type),
+          '[]'
+      ),
+      'devices', COALESCE(
+          (
+              SELECT json_agg(DISTINCT devices)
+              FROM (
+                  SELECT
+                      adm.id,
+                      adm.name,
+                      COALESCE(
+                          (
+                              SELECT json_agg(DISTINCT variants)
+                              FROM (
+                                  SELECT
+                                      adv.id,
+                                      adv.name,
+                                      COALESCE(
+                                          (
+                                              SELECT json_agg(DISTINCT versions)
+                                              FROM (
+                                                  SELECT
+                                                      avr.id,
+                                                      avr.name
+                                                  FROM ${dbTables.DEVICE_VERSION_TABLE} AS avr
+                                                  WHERE avr.variant_id = adv.id
+                                              ) AS versions
+                                          ),
+                                          '[]'
+                                      ) AS versions
+                                  FROM ${dbTables.DEVICE_VARIANT_TABLE} AS adv
+                                  WHERE adv.model_id = adm.id
+                              ) AS variants
+                          ),
+                          '[]'
+                      ) AS variants
+                  FROM ${dbTables.DEVICE_MODELS_TABLE} AS adm
+                  WHERE EXISTS (
+                      SELECT 1
+                      FROM aergov_devices AS ad
+                      WHERE ad.model_id = adm.id
+                  )
+              ) AS devices
+          ),
+          '[]'
+      )
+  ) AS filters
+  FROM ${dbTables.DEVICES_TABLE} AS ad
+  LEFT JOIN ${dbTables.AERGOV_DISTRIBUTION} AS adis ON adis.id = ad.distribution_id
+  WHERE ad.distribution_id IS NOT NULL;
+
+`
