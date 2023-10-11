@@ -6,9 +6,8 @@ const {
 } = require('../../services/aerpace-ecosystem-backend-db/src/databases/postgresql/models');
 const { logger } = require('../../utils/logger');
 const { statusCodes } = require('../../utils/statusCode');
-const { queries } = require('./inventory.query');
 const { HelperResponse } = require('../../utils/response');
-const { getImportHistoryQuery } = require('./inventory.query');
+const { getImportHistoryQuery, getInventory } = require('./inventory.query');
 const async = require('async');
 const json2csv = require('json2csv').parse;
 const csv = require('csvtojson');
@@ -26,9 +25,6 @@ const {
   csvMandatoryHeaders,
   activityStatus,
   keyWords,
-  filterCondition,
-  deviceStatus,
-  sortOrder,
   csvInputExcludedHeaders,
   csvResponseHeaders,
   statusMessage,
@@ -38,48 +34,46 @@ const {
   defaultValues,
 } = require('../../services/aerpace-ecosystem-backend-db/src/commons/constant');
 
-exports.getInventory = async ({ params, paginationQuery, search }) => {
+exports.getInventory = async ({ params }) => {
   try {
-    let querySearchCondition = ``;
-    let modelFilter = ``
-    if (search) {
-      querySearchCondition = `AND ( ad.mac_number ILIKE '%${search}%' OR adm.name ILIKE '%${search}%' OR adve.name ILIKE '%${search}%' OR adva.name ILIKE '%${search}%' OR ad.color ILIKE '%${search}%' OR adis.name ILIKE '%${search}%' )`;
-    }
-    const pageLimit = params.page_limit;
-    const pageNumber = params.page_number;
-    delete params.pageLimit;
-    delete params.pageNumber;
-    const filerOptions = [];
-    if (params.model_name) {
-      filerOptions.push(
-        `${filterCondition.MODEL_NAME} = '${params.model_name.trim()}'`,
-      );
-    }
-    if (params.variant_name) {
-      filerOptions.push(
-        `${filterCondition.VARIANT_NAME} = '${params.variant_name.trim()}'`,
-      );
-    }
-    if (params.version_name) {
-      filerOptions.push(
-        `${filterCondition.VERSION_NAME} = '${params.version_name.trim()}'`,
-      );
-    }
-    if (params.color) {
-      filerOptions.push(`${filterCondition.COLOR} = '${params.color.trim()}'`);
-    }
-    if (params.status && params.status.trim() === deviceStatus.ASSIGNED) {
-      filerOptions.push(`${filterCondition.DISTRIBUTION_NAME} is NOT NULL`);
-    }
-    if (params.status && params.status.trim() === deviceStatus.UNASSIGNED) {
-      filerOptions.push(`${filterCondition.DISTRIBUTION_NAME} is NULL`);
-    }
-    if (filerOptions.length > 0) {
-      modelFilter += ` AND ${filerOptions.join(' AND ')}`;
-    }
-    const inventoryData = await sequelize.query(
-      `${queries.getInventory} ${modelFilter} ${querySearchCondition} ${sortOrder} ${paginationQuery}`,
-    );
+    const {
+      version_id: versionId,
+      color,
+      status,
+      distribution,
+      distribution_id: distributionId,
+      search,
+      page_limit: pageLimit,
+      page_number: pageNumber,
+    } = params;
+
+    let versionFilterValues = versionId ? versionId.split(',') : null;
+    let colorFilterValues = color ? color.split(',') : null;
+    let distributionFilterValues = distribution
+      ? distribution.split(',')
+      : null;
+    let searchValues = search ? search : null;
+
+    const getInventoryQuery = getInventory({
+      versionId,
+      color,
+      distribution,
+      status,
+      distributionId,
+      search,
+      pageLimit,
+      pageNumber,
+    });
+
+    const inventoryData = await sequelize.query(getInventoryQuery, {
+      replacements: {
+        versions: versionFilterValues,
+        colors: colorFilterValues,
+        distributions: distributionFilterValues,
+        search: `%${searchValues}%`,
+      },
+    });
+
     let totalPages = Math.round(
       parseInt(inventoryData[0][0]?.data_count || 0) /
         parseInt(pageLimit || 10),
@@ -89,8 +83,8 @@ exports.getInventory = async ({ params, paginationQuery, search }) => {
       total_count: inventoryData[0][0]
         ? parseInt(inventoryData[0][0].data_count)
         : 0,
-      page_limit: parseInt(pageLimit) || 10,
-      page_number: parseInt(pageNumber) || 1,
+      page_limit: parseInt(pageLimit) || defaultValues.DEFAULT_PAGE_LIMIT,
+      page_number: parseInt(pageNumber) || defaultValues.DEFAULT_PAGE_NUMBER,
       total_pages: totalPages !== 0 ? totalPages : 1,
     };
     return {

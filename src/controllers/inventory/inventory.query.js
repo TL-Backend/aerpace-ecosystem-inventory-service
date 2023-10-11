@@ -3,11 +3,53 @@ const {
   getPaginationQuery,
 } = require('../../services/aerpace-ecosystem-backend-db/src/commons/common.query');
 
-exports.queries = {
-  getInventory: `
+exports.getInventory = ({
+  versionId,
+  color,
+  status,
+  distribution,
+  distributionId,
+  search,
+  pageLimit,
+  pageNumber,
+}) => {
+  const statuses = {
+    ASSIGNED: ({ distributionId }) => {
+      const distributionCondition = distributionId
+        ? ` = '${distributionId}' `
+        : `IS NOT NULL`;
+      return ` AND ad.distribution_id ${distributionCondition} `;
+    },
+    UNASSIGNED: ({ distributionId }) => {
+      return ` AND ad.distribution_id IS NULL `;
+    },
+  };
+
+  let versionFilter = versionId
+    ? `AND ad.version_id = ANY(ARRAY [:versions]) `
+    : ' ';
+  let colorFilter = color ? `AND ad.color = ANY(ARRAY [:colors]) ` : ' ';
+  let distributionFilter = distribution
+    ? `AND ad.distribution_id = ANY(ARRAY [:distributions]) `
+    : ' ';
+  let statusFilter = status ? statuses[status]({ distributionId }) : ' ';
+  let querySearchCondition = search
+    ? ` AND ( 
+    ad.mac_number ILIKE :search 
+    OR adm.name ILIKE :search 
+    OR adve.name ILIKE :search 
+    OR adva.name ILIKE :search 
+    OR ad.color ILIKE :search 
+    OR adis.name ILIKE :search
+    )`
+    : ' ';
+
+  const paginationQuery = getPaginationQuery({ pageLimit, pageNumber });
+
+  return `
   SELECT 
     COUNT(*) OVER() AS data_count,
-    ad.name, adm.name AS model_name,
+    adm.name AS model_name,
     adve.name AS version_name,
     adva.name AS variant_name, 
     ad.mac_number, ad.color, 
@@ -17,8 +59,10 @@ exports.queries = {
   JOIN ${dbTables.DEVICE_VERSION_TABLE} AS adve ON adve.id = ad.version_id 
   JOIN ${dbTables.DEVICE_VARIANT_TABLE} AS adva ON adva.id = ad.variant_id 
   LEFT JOIN ${dbTables.AERGOV_DISTRIBUTION} AS adis ON adis.id = ad.distribution_id
-  WHERE member_id IS NULL
-  `,
+  WHERE member_id IS NULL ${versionFilter} ${colorFilter} ${distributionFilter} ${statusFilter} 
+    ${querySearchCondition}
+  ${paginationQuery}
+  `;
 };
 
 exports.getImportHistoryQuery = ({ pageLimit = 10, pageNumber = 1 }) => {

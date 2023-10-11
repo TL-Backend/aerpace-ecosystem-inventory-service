@@ -1,6 +1,3 @@
-const {
-  getPaginationQuery,
-} = require('../../services/aerpace-ecosystem-backend-db/src/commons/common.query');
 const { logger } = require('../../utils/logger');
 const {
   errorResponse,
@@ -17,20 +14,12 @@ const { processCsvFile } = require('./inventory.helper');
 
 exports.listInventory = async (req, res, next) => {
   try {
-    let { page_limit: pageLimit, page_number: pageNumber, search } = req.query;
-    if (pageLimit) {
-      pageLimit = pageLimit.trim();
-    }
-    if (pageNumber) {
-      pageNumber = pageNumber.trim();
-    }
-    const paginationQuery = getPaginationQuery({ pageLimit, pageNumber });
     let {
       success,
       errorCode,
       message,
       data: inventoryData,
-    } = await getInventory({ params: req.query, paginationQuery, search });
+    } = await getInventory({ params: req.query });
     if (!success) {
       return errorResponse({
         res,
