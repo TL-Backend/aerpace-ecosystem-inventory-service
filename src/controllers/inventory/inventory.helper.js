@@ -6,9 +6,12 @@ const {
 } = require('../../services/aerpace-ecosystem-backend-db/src/databases/postgresql/models');
 const { logger } = require('../../utils/logger');
 const { statusCodes } = require('../../utils/statusCode');
-const { queries } = require('./inventory.query');
 const { HelperResponse } = require('../../utils/response');
-const { getImportHistoryQuery } = require('./inventory.query');
+const {
+  getImportHistoryQuery,
+  getInventory,
+  filterInventoryQuery,
+} = require('./inventory.query');
 const async = require('async');
 const json2csv = require('json2csv').parse;
 const csv = require('csvtojson');
@@ -26,55 +29,67 @@ const {
   csvMandatoryHeaders,
   activityStatus,
   keyWords,
-  filterCondition,
-  deviceStatus,
-  sortOrder,
   csvInputExcludedHeaders,
   csvResponseHeaders,
+  statusMessage,
 } = require('./inventory.constant');
 const { levelStarting } = require('../../utils/constant');
 const {
   defaultValues,
 } = require('../../services/aerpace-ecosystem-backend-db/src/commons/constant');
 
-exports.getInventory = async ({ params, paginationQuery }) => {
+exports.getInventory = async ({ params }) => {
   try {
-    const pageLimit = params.page_limit;
-    const pageNumber = params.page_number;
-    delete params.pageLimit;
-    delete params.pageNumber;
-    const filerOptions = [];
-    if (params.model_name) {
-      filerOptions.push(
-        `${filterCondition.MODEL_NAME} = '${params.model_name.trim()}'`,
-      );
+    const {
+      version_id: versionId,
+      color,
+      status,
+      distribution,
+      distribution_id: distributionId,
+      search,
+      page_limit,
+      page_number,
+    } = params;
+
+    let filterOptionsResult;
+
+    let versionFilterValues = versionId ? versionId.split(',') : null;
+    let colorFilterValues = color ? color.split(',') : null;
+    let distributionFilterValues = distribution
+      ? distribution.split(',')
+      : null;
+    let searchValues = search ? `%${search}%` : null;
+    let pageLimit = page_limit ? page_limit : defaultValues.DEFAULT_PAGE_LIMIT;
+    let pageNumber = page_number
+      ? page_number
+      : defaultValues.DEFAULT_PAGE_NUMBER;
+
+    const getInventoryQuery = getInventory({
+      versionId,
+      color,
+      distribution,
+      status,
+      distributionId,
+      search,
+      pageLimit,
+      pageNumber,
+    });
+
+    const inventoryData = await sequelize.query(getInventoryQuery, {
+      replacements: {
+        versions: versionFilterValues,
+        colors: colorFilterValues,
+        distributions: distributionFilterValues,
+        search: searchValues,
+      },
+    });
+
+    if (pageNumber === '1') {
+      const filterOptionsData = filterInventoryQuery;
+      let filterData = await sequelize.query(filterOptionsData);
+      filterOptionsResult = filterData[0][0].filters;
     }
-    if (params.variant_name) {
-      filerOptions.push(
-        `${filterCondition.VARIANT_NAME} = '${params.variant_name.trim()}'`,
-      );
-    }
-    if (params.version_name) {
-      filerOptions.push(
-        `${filterCondition.VERSION_NAME} = '${params.version_name.trim()}'`,
-      );
-    }
-    if (params.color) {
-      filerOptions.push(`${filterCondition.COLOR} = '${params.color.trim()}'`);
-    }
-    if (params.status && params.status.trim() === deviceStatus.ASSIGNED) {
-      filerOptions.push(`${filterCondition.DISTRIBUTION_NAME} is NOT NULL`);
-    }
-    if (params.status && params.status.trim() === deviceStatus.UNASSIGNED) {
-      filerOptions.push(`${filterCondition.DISTRIBUTION_NAME} is NULL`);
-    }
-    let modelFilter = '';
-    if (filerOptions.length > 0) {
-      modelFilter = `WHERE ${filerOptions.join(' AND ')}`;
-    }
-    const inventoryData = await sequelize.query(
-      `${queries.getInventory} ${modelFilter} ${sortOrder} ${paginationQuery}`,
-    );
+
     let totalPages = Math.round(
       parseInt(inventoryData[0][0]?.data_count || 0) /
         parseInt(pageLimit || 10),
@@ -84,9 +99,10 @@ exports.getInventory = async ({ params, paginationQuery }) => {
       total_count: inventoryData[0][0]
         ? parseInt(inventoryData[0][0].data_count)
         : 0,
-      page_limit: parseInt(pageLimit) || 10,
-      page_number: parseInt(pageNumber) || 1,
+      page_limit: parseInt(pageLimit),
+      page_number: parseInt(pageNumber),
       total_pages: totalPages !== 0 ? totalPages : 1,
+      filters: filterOptionsResult ? filterOptionsResult : {},
     };
     return {
       success: true,
@@ -162,7 +178,12 @@ exports.deleteFile = async ({ filePath }) => {
 };
 
 exports.processCsvFile = async ({ csvFile, userId }) => {
-  let uploadResult, inputDataUrl, responseDataUrl, processStatus, statusCode;
+  let uploadResult,
+    inputDataUrl,
+    responseDataUrl,
+    processStatus,
+    processStatusMessage,
+    statusCode;
   try {
     let { uploadData } = await this.createEntryOfImportHistory({
       csvFile,
@@ -213,12 +234,15 @@ exports.processCsvFile = async ({ csvFile, userId }) => {
     responseDataUrl = responsePublicUrl;
     if (rejectedEntries.length === jsonData.length) {
       processStatus = status.FAILED;
+      processStatusMessage = statusMessage.FAILED;
       statusCode = statusCodes.STATUS_CODE_INVALID_FORMAT;
     } else if (rejectedEntries.length === 0) {
       processStatus = status.COMPLETED;
+      processStatusMessage = statusMessage.COMPLETED;
       statusCode = statusCodes.STATUS_CODE_SUCCESS;
     } else {
       processStatus = status.PARTIALLY_COMPLETED;
+      processStatusMessage = statusMessage.PARTIALLY_COMPLETED;
       statusCode = statusCodes.STATUS_CODE_INVALID_FORMAT;
     }
 
@@ -231,7 +255,7 @@ exports.processCsvFile = async ({ csvFile, userId }) => {
     return {
       success: true,
       errorCode: statusCode,
-      message: `${keyWords.process} ${processStatus}`,
+      message: `${keyWords.process} ${processStatusMessage}`,
       data: {
         response_file_url: responsePublicUrl,
       },
@@ -250,7 +274,7 @@ exports.processCsvFile = async ({ csvFile, userId }) => {
       return {
         success: false,
         errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
-        message: `${keyWords.process} ${processStatus}`,
+        message: `${keyWords.process} ${processStatusMessage}`,
         data: {
           response_file_url: responseDataUrl,
         },
@@ -259,7 +283,7 @@ exports.processCsvFile = async ({ csvFile, userId }) => {
     return {
       success: false,
       errorCode: statusCodes.STATUS_CODE_FAILURE,
-      message: `${keyWords.process} ${status.FAILED}`,
+      message: `${keyWords.process} ${statusMessage.FAILED}`,
       data: null,
     };
   }
@@ -289,7 +313,7 @@ exports.csvFileAndHeaderValidation = async ({ csvFile }) => {
     logger.error(err.message);
     return {
       success: false,
-      message: errorResponses.INTERNAL_ERROR,
+      message: err,
     };
   }
 };
@@ -522,7 +546,7 @@ exports.validateAndCreateDeviceEntries = async ({
             await this.checkVersionValidity({ versionId });
           if (!versionStatus) {
             obj.status = status.ERROR;
-            errorList.push(errorResponses.INVALID_VERSION_ID);
+            errorList.push(errorResponses.VERSION_ID_NOT_EXISTS);
             validVersionId[versionId] = {
               status: false,
               data: null,
@@ -536,7 +560,7 @@ exports.validateAndCreateDeviceEntries = async ({
         } else {
           if (!validVersionId[versionId].status) {
             obj.status = status.ERROR;
-            errorList.push(errorResponses.INVALID_VERSION_ID);
+            errorList.push(errorResponses.VERSION_ID_NOT_EXISTS);
           }
         }
 
@@ -545,7 +569,7 @@ exports.validateAndCreateDeviceEntries = async ({
         });
         if (!macStatus) {
           obj.status = status.ERROR;
-          errorList.push(errorResponses.INVALID_MAC_ADDRESS);
+          errorList.push(errorResponses.MAC_ADDRESS_ALREADY_EXISTS);
         }
 
         if (errorList.length) {
@@ -567,7 +591,7 @@ exports.validateAndCreateDeviceEntries = async ({
       } catch (err) {
         logger.error(err.message);
         obj.status = status.ERROR;
-        obj.message = errorResponses.ERROR_OCCURED_AT_VALIDATION_AND_CREATION;
+        obj.message = errorResponses.DB_FAILED;
         invalidEntries.push(obj);
       }
       finalList.push(obj);

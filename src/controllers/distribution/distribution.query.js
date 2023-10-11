@@ -105,3 +105,26 @@ exports.getDistributionByEmailQuery = `SELECT *
 FROM ${dbTables.DISTRIBUTIONS_TABLE}
 WHERE email = :email
 `;
+
+exports.getDistributionDetailsQuery = `
+  SELECT 
+      ad.id as distribution_id,
+      ad.name as distribution_name,
+      ad.email as distribution_email,
+      ad.name as distribution_name,
+      ad.region as distribution_region,
+      ad.phone_number as distribution_phone_number,
+      ad.address as distribution_address,
+      ad.country_code as distribution_country_code,
+      au.id as distributor_id,
+      au.first_name as distributor_first_name,
+      au.last_name as distributor_last_name,
+      au.email as distributor_email,
+      au.address as distributor_address,
+      au.phone_number as distributor_phone_number,
+      au.country_code as distributor_country_code,
+      au.state as distributor_state
+    FROM ${dbTables.AERGOV_DISTRIBUTION} as ad 
+    LEFT JOIN ${dbTables.USERS_TABLE} as au ON au.distribution_id = ad.id 
+    WHERE ad.id = :distribution_id
+`;

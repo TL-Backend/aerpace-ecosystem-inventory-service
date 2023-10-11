@@ -1,3 +1,4 @@
+const { errorResponses } = require('../../utils/constant');
 const { logger } = require('../../utils/logger');
 const {
   errorResponse,
@@ -12,6 +13,7 @@ const {
   addDistributionHelper,
   listDistributionsHelper,
   editDistributionHelper,
+  getDistributionDetails,
 } = require('./distribution.helper');
 
 exports.assignDevices = async (req, res, next) => {
@@ -171,6 +173,40 @@ exports.listDistributions = async (req, res) => {
       res,
       code: statusCodes.STATUS_CODE_FAILURE,
       message: err.message,
+    });
+  }
+};
+
+exports.getDistribution = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { success, message, errorCode, data } = await getDistributionDetails({
+      id,
+    });
+
+    if (!success) {
+      return errorResponse({
+        req,
+        res,
+        code: errorCode,
+        message,
+        data,
+      });
+    }
+
+    return successResponse({
+      data: data,
+      req,
+      res,
+      message: message,
+    });
+  } catch (err) {
+    logger.error(err.message);
+    return errorResponse({
+      req,
+      res,
+      code: statusCodes.STATUS_CODE_FAILURE,
+      message: errorResponses.FAILURE,
     });
   }
 };

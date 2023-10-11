@@ -19,15 +19,17 @@ exports.errorResponses = {
   PAGE_NUMBER_INVALID: 'PageNumber is empty or invalid',
   INVALID_CSV_FILE: 'Invalid csv file or No file uploaded',
   INVALID_CSV_FORMAT: 'Invalid csv format',
-  INVALID_MAC_ADDRESS: 'Invalid mac address',
+  INVALID_MAC_ADDRESS: 'Inproper mac address',
+  MAC_ADDRESS_ALREADY_EXISTS: 'Mac address already exists',
   INVALID_CSV_HEADERS: 'Invalid csv headers',
-  INVALID_VERSION_ID: 'Invalid version id',
-  INVALID_COLOR: 'Invalid color or color is empty',
+  INVALID_VERSION_ID: 'Inproper version id',
+  VERSION_ID_NOT_EXISTS: 'Version id doesnt exists',
+  INVALID_COLOR: 'Color is empty',
   INTERNAL_ERROR: 'Something went wrong',
   IN_PROGRESS: 'In progress',
   PROCESS_FAILED: 'Process failed',
-  DUPLICATE_DATA: 'Duplicate data',
-  DB_FAILED: 'Db Failed',
+  DUPLICATE_DATA: 'Duplicate entry',
+  DB_FAILED: 'Something went wrong',
 };
 
 exports.filterCondition = {
@@ -52,6 +54,12 @@ exports.status = {
   PARTIALLY_COMPLETED: 'PARTIALLY_COMPLETED',
   ERROR: 'ERROR_EXISTS',
   SUCCESS: 'SUCCESSFUL',
+};
+
+exports.statusMessage = {
+  COMPLETED: 'completed',
+  FAILED: 'failed',
+  PARTIALLY_COMPLETED: 'partially completed',
 };
 
 exports.keyWords = {
