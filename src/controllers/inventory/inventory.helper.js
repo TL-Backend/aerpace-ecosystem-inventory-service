@@ -7,7 +7,11 @@ const {
 const { logger } = require('../../utils/logger');
 const { statusCodes } = require('../../utils/statusCode');
 const { HelperResponse } = require('../../utils/response');
-const { getImportHistoryQuery, getInventory } = require('./inventory.query');
+const {
+  getImportHistoryQuery,
+  getInventory,
+  filterInventoryQuery,
+} = require('./inventory.query');
 const async = require('async');
 const json2csv = require('json2csv').parse;
 const csv = require('csvtojson');
@@ -43,9 +47,11 @@ exports.getInventory = async ({ params }) => {
       distribution,
       distribution_id: distributionId,
       search,
-      page_limit: pageLimit,
-      page_number: pageNumber,
+      page_limit,
+      page_number,
     } = params;
+
+    let filterOptionsResult;
 
     let versionFilterValues = versionId ? versionId.split(',') : null;
     let colorFilterValues = color ? color.split(',') : null;
@@ -53,6 +59,10 @@ exports.getInventory = async ({ params }) => {
       ? distribution.split(',')
       : null;
     let searchValues = search ? `%${search}%` : null;
+    let pageLimit = page_limit ? page_limit : defaultValues.DEFAULT_PAGE_LIMIT;
+    let pageNumber = page_number
+      ? page_number
+      : defaultValues.DEFAULT_PAGE_NUMBER;
 
     const getInventoryQuery = getInventory({
       versionId,
@@ -74,6 +84,12 @@ exports.getInventory = async ({ params }) => {
       },
     });
 
+    if (pageNumber === '1') {
+      const filterOptionsData = filterInventoryQuery;
+      let filterData = await sequelize.query(filterOptionsData);
+      filterOptionsResult = filterData[0][0].filters;
+    }
+
     let totalPages = Math.round(
       parseInt(inventoryData[0][0]?.data_count || 0) /
         parseInt(pageLimit || 10),
@@ -83,9 +99,10 @@ exports.getInventory = async ({ params }) => {
       total_count: inventoryData[0][0]
         ? parseInt(inventoryData[0][0].data_count)
         : 0,
-      page_limit: parseInt(pageLimit) || defaultValues.DEFAULT_PAGE_LIMIT,
-      page_number: parseInt(pageNumber) || defaultValues.DEFAULT_PAGE_NUMBER,
+      page_limit: parseInt(pageLimit),
+      page_number: parseInt(pageNumber),
       total_pages: totalPages !== 0 ? totalPages : 1,
+      filters: filterOptionsResult ? filterOptionsResult : {},
     };
     return {
       success: true,
