@@ -349,7 +349,7 @@ exports.createEntryOfImportHistory = async ({ csvFile, userId }) => {
     const uploadData = await aergov_device_import_histories.create({
       file_name: csvFile.originalname,
       status: status.IN_PROGRESS,
-      uploaded_at : currentInstance,
+      uploaded_at: currentInstance,
       uploaded_by: userId,
     });
     return { uploadData };

@@ -431,8 +431,14 @@ exports.editDistributionHelper = async (data, id) => {
 
 exports.listDistributionsHelper = async (params) => {
   try {
+    let searchValues = params.search ? `%${params.search}%` : null;
     const query = getListDistributorsQuery(params);
-    const data = await sequelize.query(query, { raw: true });
+    const data = await sequelize.query(query, {
+      replacements: {
+        search: searchValues,
+      },
+      raw: true,
+    });
     let filterData,
       filterQuery,
       regions = [];
