@@ -52,7 +52,7 @@ exports.getInventory = async ({ params }) => {
     let distributionFilterValues = distribution
       ? distribution.split(',')
       : null;
-    let searchValues = search ? search : null;
+    let searchValues = search ? `%${search}%` : null;
 
     const getInventoryQuery = getInventory({
       versionId,
@@ -70,7 +70,7 @@ exports.getInventory = async ({ params }) => {
         versions: versionFilterValues,
         colors: colorFilterValues,
         distributions: distributionFilterValues,
-        search: `%${searchValues}%`,
+        search: searchValues,
       },
     });
 
