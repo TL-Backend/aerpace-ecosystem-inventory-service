@@ -50,8 +50,7 @@ exports.getListDistributorsQuery = (params) => {
     dst.name ILIKE :search 
     OR dst.region ILIKE :search 
     OR dst.email ILIKE :search 
-    OR usr.first_name ILIKE :search 
-    OR usr.last_name ILIKE :search`;
+    usr.first_name || ' ' || usr.last_name ILIKE :search`;
     if (!region)
       searchCondition =
         'WHERE ' +
