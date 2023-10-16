@@ -57,8 +57,7 @@ exports.getListDistributorsQuery = (params) => {
         `dst.name ILIKE :search 
         OR dst.region ILIKE :search 
         OR dst.email ILIKE :search 
-        OR usr.first_name ILIKE :search 
-        OR usr.last_name ILIKE :search`;
+        OR usr.first_name || ' ' || usr.last_name ILIKE :search`;
   }
 
   if (region) {
@@ -78,13 +77,38 @@ exports.getListDistributorsQuery = (params) => {
   let query = `
     SELECT 
       COUNT(*) OVER() AS data_count,
-      dst.id, dst.name,dst.email, dst.address, dst.region, dst.phone_number,
-      json_build_object('first_name', usr.first_name, 'last_name', usr.last_name, 'address', usr.address, 'state', usr.state, 'pincode', usr.pin_code, 'phone_number', usr.phone_number) as distributor
+      dst.id, dst.name,dst.email, dst.address, dst.region, dst.phone_number, dst.country_code,
+      json_build_object(
+        'id',usr.id,
+        'first_name',usr.first_name,
+        'last_name',usr.last_name,
+        'email',usr.email,
+        'address',usr.address,
+        'phone_number',usr.phone_number,
+        'country_code',usr.country_code,
+        'state',usr.state,
+        'pin_code', usr.pin_code
+        ) as distributor
     FROM ${dbTables.DISTRIBUTIONS_TABLE} as dst
     LEFT JOIN ${dbTables.USERS_TABLE} as usr on usr.id = dst.user_id
     ${queryFilterCondition}
     ${searchCondition}
-    GROUP BY dst.name, dst.id, dst.email, dst.address, dst.region, dst.phone_number, usr.first_name, usr.last_name, usr.address, usr.state, usr.pin_code, usr.phone_number
+    GROUP BY dst.name, 
+      dst.id, dst.email, 
+      dst.address, 
+      dst.region, 
+      dst.phone_number,
+      dst.country_code,
+      usr.id,
+      usr.first_name, 
+      usr.first_name, 
+      usr.last_name, 
+      usr.address, 
+      usr.phone_number,
+      usr.country_code,
+      usr.state, 
+      usr.pin_code, 
+      usr.phone_number
     ORDER BY dst.created_at DESC
     ${paginationCondition}
   `;
@@ -107,22 +131,26 @@ WHERE email = :email
 
 exports.getDistributionDetailsQuery = `
   SELECT 
-      ad.id as distribution_id,
-      ad.name as distribution_name,
-      ad.email as distribution_email,
-      ad.name as distribution_name,
-      ad.region as distribution_region,
-      ad.phone_number as distribution_phone_number,
-      ad.address as distribution_address,
-      ad.country_code as distribution_country_code,
-      au.id as distributor_id,
-      au.first_name as distributor_first_name,
-      au.last_name as distributor_last_name,
-      au.email as distributor_email,
-      au.address as distributor_address,
-      au.phone_number as distributor_phone_number,
-      au.country_code as distributor_country_code,
-      au.state as distributor_state
+  json_build_object(
+    'id', ad.id,
+    'name', ad.name,
+    'email', ad.email,
+    'region',ad.region,
+    'phone_number',ad.phone_number,
+    'address',ad.address,
+    'country_code',ad.country_code,
+    'distributor', json_build_object(
+        'id',au.id,
+        'first_name',au.first_name,
+        'last_name',au.last_name,
+        'email',au.email,
+        'address',au.address,
+        'phone_number',au.phone_number,
+        'country_code',au.country_code,
+        'state',au.state,
+        'pin_code', au.pin_code
+    )
+) as distribution
     FROM ${dbTables.AERGOV_DISTRIBUTION} as ad 
     LEFT JOIN ${dbTables.USERS_TABLE} as au ON au.distribution_id = ad.id 
     WHERE ad.id = :distribution_id
