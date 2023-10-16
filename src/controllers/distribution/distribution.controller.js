@@ -83,8 +83,7 @@ exports.unassignDevices = async (req, res, next) => {
 
 exports.addDistribution = async (req, res) => {
   try {
-    const distributionDetails = req.body;
-    const distribution = await addDistributionHelper(distributionDetails);
+    const distribution = await addDistributionHelper({ params: req.body });
     if (!distribution.success) {
       logger.error(distribution.message);
       return errorResponse({

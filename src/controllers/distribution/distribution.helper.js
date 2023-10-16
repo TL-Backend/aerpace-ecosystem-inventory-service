@@ -188,15 +188,36 @@ exports.unassignDevicesHelper = async (params) => {
   }
 };
 
-exports.addDistributionHelper = async (data) => {
+exports.addDistributionHelper = async ({ params }) => {
   const transaction = await sequelize.transaction();
   let distributorId;
 
   try {
+    const {
+      name: distribution_name,
+      email: distribution_email,
+      address: distribution_address,
+      region: distribution_region,
+      phone_number: distribution_phone_number,
+      country_code: distribution_country_code,
+      distributor,
+    } = params;
+
+    const {
+      first_name: distributor_first_name,
+      last_name: distributor_last_name,
+      email: distributor_email,
+      address: distributor_address,
+      phone_number: distributor_phone_number,
+      country_code: distributor_country_code,
+      state: distributor_state,
+      pin_code: distributor_pin_code,
+      role_id: distributor_role_id,
+    } = distributor;
+
     // Check if a distribution with the same email exists
-    const distributionExist = await this.checkDistributionExistWithEmail(
-      data.distribution_email,
-    );
+    const distributionExist =
+      await this.checkDistributionExistWithEmail(distribution_email);
 
     if (distributionExist.data || !distributionExist.success) {
       return {
@@ -215,15 +236,15 @@ exports.addDistributionHelper = async (data) => {
 
     // Create a new distributor user
     const distributorUser = {
-      first_name: data.distributor_first_name,
-      last_name: data.distributor_last_name,
-      role_id: data.distributor_role_id || distributionRole.id,
-      email: data.distributor_email,
-      phone_number: data.distributor_phone_number,
-      country_code: data.distributor_country_code,
-      address: data.distributor_address,
-      pin_code: data.distributor_pin_code,
-      state: data.distributor_state,
+      first_name: distributor_first_name,
+      last_name: distributor_last_name,
+      role_id: distributor_role_id || distributionRole.id,
+      email: distributor_email,
+      phone_number: distributor_phone_number,
+      country_code: distributor_country_code,
+      address: distributor_address,
+      pin_code: distributor_pin_code,
+      state: distributor_state,
       user_type: defaults.USER_TYPE,
     };
 
@@ -245,13 +266,13 @@ exports.addDistributionHelper = async (data) => {
 
     // Create a new distribution
     const distributionParams = {
-      name: data.distribution_name,
+      name: distribution_name,
       user_id: distributorId,
-      region: data.distribution_region,
-      email: data.distribution_email,
-      phone_number: data.distribution_phone_number,
-      address: data.distribution_address,
-      country_code: data.distribution_country_code,
+      region: distribution_region,
+      email: distribution_email,
+      phone_number: distribution_phone_number,
+      address: distribution_address,
+      country_code: distribution_country_code,
     };
 
     const distributionData = await aergov_distributions.create(
@@ -269,8 +290,6 @@ exports.addDistributionHelper = async (data) => {
         })}`,
         body: { distribution_id: distributionId },
       });
-
-      data.distribution_id = distributionId;
     }
 
     transaction.commit();
@@ -278,7 +297,27 @@ exports.addDistributionHelper = async (data) => {
     return {
       success: true,
       message: successResponses.DISTRIBUTION_ADDED_MESSAGE,
-      data: data,
+      data: {
+        id: distributionId,
+        name: distribution_name,
+        email: distribution_email,
+        address: distribution_address,
+        region: distribution_region,
+        phone_number: distribution_phone_number,
+        country_code: distribution_country_code,
+        distributor: {
+          id: distributorId,
+          first_name: distributor_first_name,
+          last_name: distributor_last_name,
+          email: distributor_email,
+          address: distributor_address,
+          phone_number: distributor_phone_number,
+          country_code: distributor_country_code,
+          state: distributor_state,
+          pin_code: distributor_pin_code,
+          role_id: distributor_role_id,
+        },
+      },
     };
   } catch (err) {
     if (err.statusCode) {

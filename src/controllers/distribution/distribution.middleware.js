@@ -46,21 +46,26 @@ exports.validateInputToAssignOrUnassignDevices = async (req, res, next) => {
 exports.validateDistributionInput = async (req, res, next) => {
   try {
     const {
-      distribution_name,
-      distribution_email,
-      distribution_region,
-      distribution_phone_number,
-      distribution_address,
-      distribution_country_code,
-      distributor_first_name,
-      distributor_last_name,
-      distributor_country_code,
-      distributor_phone_number,
-      distributor_email,
-      distributor_address,
-      distributor_pin_code,
-      distributor_state,
+      name: distribution_name,
+      email: distribution_email,
+      address: distribution_address,
+      region: distribution_region,
+      phone_number: distribution_phone_number,
+      country_code: distribution_country_code,
+      distributor,
     } = req.body;
+
+    const {
+      first_name: distributor_first_name,
+      last_name: distributor_last_name,
+      email: distributor_email,
+      address: distributor_address,
+      phone_number: distributor_phone_number,
+      country_code: distributor_country_code,
+      state: distributor_state,
+      pin_code: distributor_pin_code,
+    } = distributor;
+
     const errorsList = [];
     if (
       typeof distributor_first_name !== 'string' ||
@@ -138,12 +143,15 @@ exports.validateDistributionInput = async (req, res, next) => {
     }
     let validRegex =
       /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+
     if (!distributor_email?.trim() || !distributor_email.match(validRegex)) {
       errorsList.push(messages.errorResponses.INVALID_EMAIL_FORMAT_MESSAGE);
     }
+
     if (!distribution_email?.trim() || !distribution_email.match(validRegex)) {
       errorsList.push(messages.errorResponses.INVALID_EMAIL_FORMAT_MESSAGE);
     }
+
     if (
       typeof distributor_pin_code !== 'string' ||
       !distributor_pin_code?.trim()
@@ -154,6 +162,7 @@ exports.validateDistributionInput = async (req, res, next) => {
         ),
       );
     }
+
     if (
       typeof distribution_country_code !== 'string' ||
       !distribution_country_code?.trim()
@@ -164,6 +173,7 @@ exports.validateDistributionInput = async (req, res, next) => {
         ),
       );
     }
+
     if (
       typeof distributor_address !== 'string' ||
       !distributor_address?.trim()
@@ -174,6 +184,7 @@ exports.validateDistributionInput = async (req, res, next) => {
         ),
       );
     }
+
     if (
       typeof distribution_address !== 'string' ||
       !distribution_address?.trim()
@@ -184,9 +195,11 @@ exports.validateDistributionInput = async (req, res, next) => {
         ),
       );
     }
+
     if (errorsList.length) {
       throw errorsList.join(' ,');
     }
+``
     return next();
   } catch (error) {
     logger.error(error);
