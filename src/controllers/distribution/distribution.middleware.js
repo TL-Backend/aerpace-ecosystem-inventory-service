@@ -199,7 +199,7 @@ exports.validateDistributionInput = async (req, res, next) => {
     if (errorsList.length) {
       throw errorsList.join(' ,');
     }
-``
+
     return next();
   } catch (error) {
     logger.error(error);
