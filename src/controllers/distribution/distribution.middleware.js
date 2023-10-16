@@ -46,21 +46,26 @@ exports.validateInputToAssignOrUnassignDevices = async (req, res, next) => {
 exports.validateDistributionInput = async (req, res, next) => {
   try {
     const {
-      distribution_name,
-      distribution_email,
-      distribution_region,
-      distribution_phone_number,
-      distribution_address,
-      distribution_country_code,
-      distributor_first_name,
-      distributor_last_name,
-      distributor_country_code,
-      distributor_phone_number,
-      distributor_email,
-      distributor_address,
-      distributor_pin_code,
-      distributor_state,
+      name: name,
+      email: distribution_email,
+      address: address,
+      region: region,
+      phone_number: phone_number,
+      country_code: country_code,
+      distributor,
     } = req.body;
+
+    const {
+      first_name: distributor_first_name,
+      last_name: distributor_last_name,
+      email: distributor_email,
+      address: distributor_address,
+      phone_number: distributor_phone_number,
+      country_code: distributor_country_code,
+      state: distributor_state,
+      pin_code: distributor_pin_code,
+    } = distributor;
+
     const errorsList = [];
     if (
       typeof distributor_first_name !== 'string' ||
@@ -73,19 +78,19 @@ exports.validateDistributionInput = async (req, res, next) => {
       );
     }
     if (
-      typeof distribution_region !== 'string' ||
-      !distribution_region?.trim()
+      typeof region !== 'string' ||
+      !region?.trim()
     ) {
       errorsList.push(
         messages.errorResponses.INVALID_STRING_OR_MISSING_ERROR(
-          'distribution_region',
+          'region',
         ),
       );
     }
-    if (typeof distribution_name !== 'string' || !distribution_name?.trim()) {
+    if (typeof name !== 'string' || !name?.trim()) {
       errorsList.push(
         messages.errorResponses.INVALID_STRING_OR_MISSING_ERROR(
-          'distribution_name',
+          'name',
         ),
       );
     }
@@ -127,23 +132,26 @@ exports.validateDistributionInput = async (req, res, next) => {
       );
     }
     if (
-      typeof distribution_phone_number !== 'string' ||
-      !distribution_phone_number?.trim()
+      typeof phone_number !== 'string' ||
+      !phone_number?.trim()
     ) {
       errorsList.push(
         messages.errorResponses.INVALID_STRING_OR_MISSING_ERROR(
-          'distribution_phone_number',
+          'phone_number',
         ),
       );
     }
     let validRegex =
       /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+
     if (!distributor_email?.trim() || !distributor_email.match(validRegex)) {
       errorsList.push(messages.errorResponses.INVALID_EMAIL_FORMAT_MESSAGE);
     }
+
     if (!distribution_email?.trim() || !distribution_email.match(validRegex)) {
       errorsList.push(messages.errorResponses.INVALID_EMAIL_FORMAT_MESSAGE);
     }
+
     if (
       typeof distributor_pin_code !== 'string' ||
       !distributor_pin_code?.trim()
@@ -154,16 +162,18 @@ exports.validateDistributionInput = async (req, res, next) => {
         ),
       );
     }
+
     if (
-      typeof distribution_country_code !== 'string' ||
-      !distribution_country_code?.trim()
+      typeof country_code !== 'string' ||
+      !country_code?.trim()
     ) {
       errorsList.push(
         messages.errorResponses.INVALID_STRING_OR_MISSING_ERROR(
-          'distribution_country_code',
+          'country_code',
         ),
       );
     }
+
     if (
       typeof distributor_address !== 'string' ||
       !distributor_address?.trim()
@@ -174,19 +184,22 @@ exports.validateDistributionInput = async (req, res, next) => {
         ),
       );
     }
+
     if (
-      typeof distribution_address !== 'string' ||
-      !distribution_address?.trim()
+      typeof address !== 'string' ||
+      !address?.trim()
     ) {
       errorsList.push(
         messages.errorResponses.INVALID_STRING_OR_MISSING_ERROR(
-          'distribution_address',
+          'address',
         ),
       );
     }
+
     if (errorsList.length) {
       throw errorsList.join(' ,');
     }
+
     return next();
   } catch (error) {
     logger.error(error);
@@ -237,14 +250,15 @@ exports.validateListDistributionInput = async (req, res, next) => {
 exports.validateEditDistributionInput = async (req, res, next) => {
   try {
     const {
-      distribution_name,
-      distribution_region,
-      distribution_phone_number,
-      distribution_address,
-      distribution_country_code,
+      name,
+      region,
+      phone_number,
+      address,
+      country_code,
     } = req.body;
     const distribution_id = req.params.id;
     const errorsList = [];
+
     if (
       typeof distribution_id !== 'string' ||
       !distribution_id?.trim() ||
@@ -256,56 +270,63 @@ exports.validateEditDistributionInput = async (req, res, next) => {
         ),
       );
     }
+
     if (
-      distribution_region &&
-      (typeof distribution_region !== 'string' || !distribution_region?.trim())
+      region &&
+      (typeof region !== 'string' || !region?.trim())
     ) {
       errorsList.push(
-        messages.errorResponses.INVALID_FORMAT_ERROR('distribution_region'),
+        messages.errorResponses.INVALID_FORMAT_ERROR('region'),
       );
     }
+
     if (
-      distribution_name &&
-      (typeof distribution_name !== 'string' || !distribution_name?.trim())
+      name &&
+      (typeof name !== 'string' || !name?.trim())
     ) {
       errorsList.push(
-        messages.errorResponses.INVALID_FORMAT_ERROR('distribution_name'),
+        messages.errorResponses.INVALID_FORMAT_ERROR('name'),
       );
     }
+
     if (
-      distribution_phone_number &&
-      (typeof distribution_phone_number !== 'string' ||
-        !distribution_phone_number?.trim())
-    ) {
-      errorsList.push(
-        messages.errorResponses.INVALID_FORMAT_ERROR(
-          'distribution_phone_number',
-        ),
-      );
-    }
-    if (
-      distribution_country_code &&
-      (typeof distribution_country_code !== 'string' ||
-        !distribution_country_code?.trim())
+      phone_number &&
+      (typeof phone_number !== 'string' ||
+        !phone_number?.trim())
     ) {
       errorsList.push(
         messages.errorResponses.INVALID_FORMAT_ERROR(
-          'distribution_country_code',
+          'phone_number',
         ),
       );
     }
+
     if (
-      distribution_address &&
-      (typeof distribution_address !== 'string' ||
-        !distribution_address?.trim())
+      country_code &&
+      (typeof country_code !== 'string' ||
+        !country_code?.trim())
     ) {
       errorsList.push(
-        messages.errorResponses.INVALID_FORMAT_ERROR('distribution_address'),
+        messages.errorResponses.INVALID_FORMAT_ERROR(
+          'country_code',
+        ),
       );
     }
+
+    if (
+      address &&
+      (typeof address !== 'string' ||
+        !address?.trim())
+    ) {
+      errorsList.push(
+        messages.errorResponses.INVALID_FORMAT_ERROR('address'),
+      );
+    }
+
     if (errorsList.length) {
       throw errorsList.join(' ,');
     }
+    
     return next();
   } catch (error) {
     logger.error(error);
