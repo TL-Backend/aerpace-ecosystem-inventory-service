@@ -424,12 +424,21 @@ exports.validateDataInDBById = async (id_key, table) => {
   }
 };
 
-exports.editDistributionHelper = async (data, id) => {
+exports.editDistributionHelper = async ({ data, id }) => {
   try {
+    const {
+      name,
+      phone_number: phoneNumber,
+      region,
+      country_code: countryCode,
+      address,
+    } = data;
+
     const distribution = await this.validateDataInDBById(
       id,
       dbTables.DISTRIBUTIONS_TABLE,
     );
+
     if (!distribution.data || !distribution.success) {
       return {
         success: false,
@@ -438,25 +447,26 @@ exports.editDistributionHelper = async (data, id) => {
         data: null,
       };
     }
-    const DistributionParams = {
-      name: data.distribution_name,
-      region: data.distribution_region,
-      phone_number: data.distribution_phone_number,
-      address: data.distribution_address,
-      country_code: data.distribution_country_code,
-    };
+
     const distributionData = await aergov_distributions.update(
-      DistributionParams,
+      {
+        name,
+        phone_number: phoneNumber,
+        region,
+        country_code: countryCode,
+        address,
+      },
       {
         where: { id },
         returning: true,
       },
     );
-    data.distribution_id = distributionData.id;
+
+    data.id = id;
     return {
       success: true,
       message: successResponses.DISTRIBUTION_UPDATED_MESSAGE,
-      data: data,
+      data
     };
   } catch (err) {
     logger.error(err.message);

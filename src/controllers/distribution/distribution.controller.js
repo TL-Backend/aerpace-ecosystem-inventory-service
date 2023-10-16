@@ -113,22 +113,23 @@ exports.addDistribution = async (req, res) => {
 
 exports.editDistribution = async (req, res) => {
   try {
-    const distributionDetails = req.body;
-    const distribution = await editDistributionHelper(
-      distributionDetails,
-      req.params.id,
-    );
-    if (!distribution.success) {
+
+    const { success, errorCode, message, data } = await editDistributionHelper({
+      data: req.body,
+      id: req.params.id,
+    });
+
+    if (!success) {
       return errorResponse({
         req,
         res,
-        code: distribution.code || statusCodes.STATUS_CODE_FAILURE,
-        error: distribution.data,
-        message: distribution.message,
+        code: errorCode || statusCodes.STATUS_CODE_FAILURE,
+        message,
       });
     }
+
     return successResponse({
-      data: distributionDetails,
+      data,
       req,
       res,
       message: messages.successResponses.DISTRIBUTION_UPDATED_MESSAGE,
