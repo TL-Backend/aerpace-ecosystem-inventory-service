@@ -90,66 +90,56 @@ exports.getImportHistoryQuery = ({ pageLimit = 10, pageNumber = 1 }) => {
 };
 
 exports.filterInventoryQuery = `
+WITH distributions AS (
+  SELECT json_agg(DISTINCT name) FILTER (WHERE name IS NOT NULL) AS names
+  FROM ${dbTables.AERGOV_DISTRIBUTION}
+  WHERE id IN (SELECT DISTINCT distribution_id FROM ${dbTables.DEVICES_TABLE})
+),
+colors AS (
+  SELECT json_agg(DISTINCT color) FILTER (WHERE color IS NOT NULL) AS colors
+  FROM  ${dbTables.DEVICES_TABLE}
+),
+device_types AS (
+  SELECT json_agg(DISTINCT device_type) FILTER (WHERE device_type IS NOT NULL) AS device_types
+  FROM  ${dbTables.DEVICES_TABLE}
+),
+devices AS (
   SELECT
-  json_build_object(
-      'distributions', COALESCE(
-          json_agg(DISTINCT adis.name),
-          '[]'
-      ),
-      'colors', COALESCE(
-          json_agg(DISTINCT ad.color),
-          '[]'
-      ),
-      'device_types', COALESCE(
-          json_agg(DISTINCT ad.device_type),
-          '[]'
-      ),
-      'devices', COALESCE(
-          (
-              SELECT json_agg(DISTINCT devices)
+      adm.id,
+      adm.name,
+      COALESCE( (
+              SELECT json_agg(DISTINCT variants) FILTER (WHERE variants IS NOT NULL)
               FROM (
                   SELECT
-                      adm.id,
-                      adm.name,
-                      COALESCE(
-                          (
-                              SELECT json_agg(DISTINCT variants)
-                              FROM (
-                                  SELECT
-                                      adv.id,
-                                      adv.name,
-                                      COALESCE(
-                                          (
-                                              SELECT json_agg(DISTINCT versions)
-                                              FROM (
-                                                  SELECT
-                                                      avr.id,
-                                                      avr.name
-                                                  FROM ${dbTables.DEVICE_VERSION_TABLE} AS avr
-                                                  WHERE avr.variant_id = adv.id
-                                              ) AS versions
-                                          ),
-                                          '[]'
-                                      ) AS versions
-                                  FROM ${dbTables.DEVICE_VARIANT_TABLE} AS adv
-                                  WHERE adv.model_id = adm.id
-                              ) AS variants
-                          ),
-                          '[]'
-                      ) AS variants
-                  FROM ${dbTables.DEVICE_MODELS_TABLE} AS adm
-                  WHERE EXISTS (
-                      SELECT 1
-                      FROM aergov_devices AS ad
-                      WHERE ad.model_id = adm.id
-                  )
-              ) AS devices
-          ),
-          '[]'
-      )
-  ) AS filters
-  FROM ${dbTables.DEVICES_TABLE} AS ad
-  LEFT JOIN ${dbTables.AERGOV_DISTRIBUTION} AS adis ON adis.id = ad.distribution_id
-  WHERE ad.distribution_id IS NOT NULL;
+                      adv.id,
+                      adv.name,
+                      COALESCE( (
+                          SELECT json_agg(
+                              json_build_object(
+                                  'id', avr.id,
+                                  'name', avr.name
+                              )
+                          ) FILTER (WHERE avr.name IS NOT NULL) AS versions
+                          FROM ${dbTables.DEVICE_VERSION_TABLE} AS avr
+                          WHERE avr.variant_id = adv.id
+                      ), '[]') AS versions
+                  FROM ${dbTables.DEVICE_VARIANT_TABLE} AS adv
+                  WHERE adv.model_id = adm.id
+              ) AS variants
+          ), '[]') AS variants
+  FROM ${dbTables.DEVICE_MODELS_TABLE} AS adm
+  WHERE EXISTS (
+      SELECT 1
+      FROM ${dbTables.DEVICES_TABLE} AS ad
+      WHERE ad.model_id = adm.id
+  )
+)
+SELECT
+  json_build_object(
+      'distributions', COALESCE((SELECT names FROM distributions), '[]'),
+      'colors', COALESCE((SELECT colors FROM colors), '[]'),
+      'device_types', COALESCE((SELECT device_types FROM device_types), '[]'),
+      'devices', COALESCE((SELECT json_agg(devices) FROM devices), '[]')
+  ) AS filters;
 
 `
