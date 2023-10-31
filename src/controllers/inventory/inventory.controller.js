@@ -87,6 +87,7 @@ exports.importCsv = async (req, res, next) => {
       return errorResponse({
         req,
         res,
+        data,
         code: errorCode,
         message: message,
       });
@@ -102,6 +103,10 @@ exports.importCsv = async (req, res, next) => {
     return errorResponse({
       req,
       res,
+      data: {
+        response_file_name: null,
+        response_file_url: null
+      },
       code: statusCodes.STATUS_CODE_FAILURE,
       error: err,
     });

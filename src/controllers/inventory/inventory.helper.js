@@ -183,7 +183,8 @@ exports.processCsvFile = async ({ csvFile, userId }) => {
     responseDataUrl,
     processStatus,
     processStatusMessage,
-    statusCode;
+    statusCode,
+    responseFileName;
   try {
     let { uploadData } = await this.createEntryOfImportHistory({
       csvFile,
@@ -191,7 +192,7 @@ exports.processCsvFile = async ({ csvFile, userId }) => {
     });
     uploadResult = uploadData;
 
-    const { success: fileValidationStatus, message: fileValidationMessage } =
+    const { success: fileValidationStatus, message: fileValidationMessage, data: fileValidationData } =
       await this.csvFileAndHeaderValidation({ csvFile });
     if (!fileValidationStatus) {
       uploadData.status = status.FAILED;
@@ -201,7 +202,7 @@ exports.processCsvFile = async ({ csvFile, userId }) => {
         success: false,
         errorCode: statusCodes.STATUS_CODE_INVALID_FORMAT,
         message: fileValidationMessage,
-        data: null,
+        data: fileValidationData
       };
     }
 
@@ -227,10 +228,12 @@ exports.processCsvFile = async ({ csvFile, userId }) => {
         sourceData: uploadData,
       });
 
-    const { responsePublicUrl } = await this.convertJsonToCsvAndUploadCsv({
-      finalList,
-      csvFile,
-    });
+    const { responsePublicUrl, responseFileName: outputFileName } =
+      await this.convertJsonToCsvAndUploadCsv({
+        finalList,
+        csvFile,
+      });
+    responseFileName = outputFileName;
     responseDataUrl = responsePublicUrl;
     if (rejectedEntries.length === jsonData.length) {
       processStatus = status.FAILED;
@@ -258,6 +261,7 @@ exports.processCsvFile = async ({ csvFile, userId }) => {
       message: `${keyWords.process} ${processStatusMessage}`,
       data: {
         response_file_url: responsePublicUrl,
+        response_file_name: responseFileName,
       },
     };
   } catch (err) {
@@ -277,6 +281,7 @@ exports.processCsvFile = async ({ csvFile, userId }) => {
         message: `${keyWords.process} ${processStatusMessage}`,
         data: {
           response_file_url: responseDataUrl,
+          response_file_name: responseFileName,
         },
       };
     }
@@ -284,7 +289,10 @@ exports.processCsvFile = async ({ csvFile, userId }) => {
       success: false,
       errorCode: statusCodes.STATUS_CODE_FAILURE,
       message: `${keyWords.process} ${statusMessage.FAILED}`,
-      data: null,
+      data: {
+        response_file_url: null,
+        response_file_name: null,
+      },
     };
   }
 };
@@ -314,6 +322,10 @@ exports.csvFileAndHeaderValidation = async ({ csvFile }) => {
     return {
       success: false,
       message: err,
+      data: {
+        response_file_name: null,
+        response_file_url: null,
+      },
     };
   }
 };
@@ -353,7 +365,7 @@ exports.convertJsonToCsvAndUploadCsv = async ({ finalList, csvFile }) => {
     const fields = csvResponseHeaders;
     const csv = json2csv(modifiedFinalList, { fields });
     fs.writeFileSync(responseFileLocation, csv, 'utf-8');
-    const { publicUrl } = await this.uploadCsvToS3({
+    const { publicUrl, responseFileName } = await this.uploadCsvToS3({
       file: csvFile,
       filePath: responseFileLocation,
       location: process.env.RESPONSE_FILE_LOCATION,
@@ -361,6 +373,7 @@ exports.convertJsonToCsvAndUploadCsv = async ({ finalList, csvFile }) => {
     await this.deleteFile({ filePath: responseFileLocation });
     return {
       responsePublicUrl: publicUrl,
+      responseFileName: responseFileName,
     };
   } catch (err) {
     logger.error(err.message);
@@ -394,9 +407,13 @@ exports.uploadCsvToS3 = async ({ file, filePath, location }) => {
 
     const currentTime = moment().format(momentFormat);
 
+    const fileType =
+      location == process.env.INPUT_FILE_LOCATION ? 'input' : 'response';
+    const responseFileName = `${fileType}-${file.originalname}-${currentTime}`;
+
     const params = {
       Bucket: process.env.BUCKET_NAME,
-      Key: `${location}/${currentTime}-${file.originalname}`,
+      Key: `${location}/${responseFileName}`,
       Body: fileStream,
     };
 
@@ -408,6 +425,7 @@ exports.uploadCsvToS3 = async ({ file, filePath, location }) => {
       publicUrl = `${process.env.S3_PUBLIC_URL}${location}/${currentTime}-${file.originalname}`;
       return {
         publicUrl,
+        responseFileName,
       };
     } catch (err) {
       logger.error(err.message);
