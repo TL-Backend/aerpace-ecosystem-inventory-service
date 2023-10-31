@@ -19,11 +19,11 @@ exports.errorResponses = {
   PAGE_NUMBER_INVALID: 'PageNumber is empty or invalid',
   INVALID_CSV_FILE: 'Invalid csv file or No file uploaded',
   INVALID_CSV_FORMAT: 'Invalid csv format',
-  INVALID_MAC_ADDRESS: 'Inproper mac address',
+  INVALID_MAC_ADDRESS: 'Improper mac address',
   MAC_ADDRESS_ALREADY_EXISTS: 'Mac address already exists',
   INVALID_CSV_HEADERS: 'Invalid csv headers',
-  INVALID_VERSION_ID: 'Inproper version id',
-  VERSION_ID_NOT_EXISTS: 'Version id doesnt exists',
+  INVALID_VERSION_ID: 'Improper version id',
+  VERSION_ID_NOT_EXISTS: 'Version id does not exists',
   INVALID_COLOR: 'Color is empty',
   INTERNAL_ERROR: 'Something went wrong',
   IN_PROGRESS: 'In progress',
@@ -57,9 +57,9 @@ exports.status = {
 };
 
 exports.statusMessage = {
-  COMPLETED: 'completed',
-  FAILED: 'failed',
-  PARTIALLY_COMPLETED: 'partially completed',
+  COMPLETED: 'completed.',
+  FAILED: 'failed, To review error logs, please access the history tab.',
+  PARTIALLY_COMPLETED: 'partially completed, To review error logs, please access the history tab.',
 };
 
 exports.keyWords = {
