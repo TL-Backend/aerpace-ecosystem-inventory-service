@@ -409,8 +409,7 @@ exports.uploadCsvToS3 = async ({ file, filePath, location }) => {
 
     const fileType =
       location == process.env.INPUT_FILE_LOCATION ? 'input' : 'response';
-    const responseFileName = `${fileType}-${file.originalname}-${currentTime}`;
-
+    const responseFileName = `${fileType}-${currentTime}-${file.originalname}`;
     const params = {
       Bucket: process.env.BUCKET_NAME,
       Key: `${location}/${responseFileName}`,
@@ -422,7 +421,7 @@ exports.uploadCsvToS3 = async ({ file, filePath, location }) => {
     try {
       const data = await uploadPromise;
       logger.info(successResponses.FILE_UPLOADED_SUCCESSFULLY, data.Location);
-      publicUrl = `${process.env.S3_PUBLIC_URL}${location}/${currentTime}-${file.originalname}`;
+      publicUrl = `${process.env.S3_PUBLIC_URL}${location}/${responseFileName}`;
       return {
         publicUrl,
         responseFileName,
