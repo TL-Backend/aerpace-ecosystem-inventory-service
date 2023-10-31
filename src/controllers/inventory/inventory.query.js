@@ -61,6 +61,7 @@ exports.getInventory = ({
   LEFT JOIN ${dbTables.AERGOV_DISTRIBUTION} AS adis ON adis.id = ad.distribution_id
   WHERE member_id IS NULL ${versionFilter} ${colorFilter} ${distributionFilter} ${statusFilter} 
     ${querySearchCondition}
+    ORDER BY ad.updated_at
   ${paginationQuery}
   `;
 };
